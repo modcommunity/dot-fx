@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 7
-const CHECKS := 56
+const CHECKS := 62
 
 var _passed := 0
 var _failed := 0
@@ -159,6 +159,33 @@ func _test_catalogue() -> void:
 	var dupe := DotFxCatalogue.new()
 	dupe.add(_def(&"twice")).add(_def(&"twice"))
 	_check(not dupe.validate().ok, "a duplicate id is refused")
+
+	# `missing_scenes` is a different question from `validate`, and had no caller. A
+	# catalogue whose documents are all well formed and whose scenes are all absent is
+	# exactly what a server validating content it does not have looks like -- and exactly
+	# what a client with a broken export looks like. Only one of those is a bug, which is
+	# why they are two calls.
+	_check(c.missing_scenes().is_empty(), "a catalogue whose scenes are all here is missing none")
+
+	var absent := DotFxCatalogue.new()
+	var gone := _def(&"gone")
+	gone.scene_path = "res://fixtures/there_is_no_such_scene.tscn"
+	absent.add(gone)
+	_check(
+		absent.validate().ok,
+		"a catalogue naming a scene that is not here is still VALID, which is the point"
+	)
+	_check(
+		Array(absent.missing_scenes()) == [gone.scene_path],
+		"and says which one is missing, because that is a different question from validity"
+	)
+	var bodiless := DotFxCatalogue.new()
+	bodiless.add(_def(&"shake_only", DotFxDef.Kind.SHAKE))
+	bodiless.defs[0].scene_path = ""
+	_check(
+		bodiless.missing_scenes().is_empty(),
+		"while an effect that names no scene is not missing one"
+	)
 
 	var m := _manager()
 	_check(m.describe()["live"] == 0, "a fresh manager has nothing live")
@@ -360,6 +387,21 @@ func _test_shake() -> void:
 	_check(not s.active(), "a scale of zero turns it off entirely")
 	_check(s.offset() == Vector3.ZERO, "with no residual motion at all")
 	_check(is_equal_approx(s.roll(), 0.0), "including the roll")
+
+	# `offset_2d` had no caller. Asserted against `offset()` rather than against a number,
+	# because the noise field is what decides the number and a hard-coded one would be
+	# asserting the noise implementation rather than the projection.
+	s.scale = 1.0
+	s.add(1.0)
+	s.advance(0.016)
+	var three := s.offset()
+	var two := s.offset_2d()
+	_check(
+		is_equal_approx(two.x, three.x) and is_equal_approx(two.y, three.y),
+		"the 2D displacement is the same sample as the 3D one, projected"
+	)
+	s.scale = 0.0
+	_check(s.offset_2d() == Vector2.ZERO, "and it goes to zero with everything else")
 
 	var m := _manager()
 	m.config.shake_scale = 0.0

@@ -13,7 +13,7 @@ This asset, along with all the others, was built initially with **Claude Code** 
 
 **An effect never changes the simulation.** It is a picture of something that already happened.
 
-That single property is what makes every mechanism here safe. A frame budget may drop one, a quality tier may refuse one, a distance cull may skip one, and a client whose content pack is still downloading simply does not see it — and in none of those cases do two machines disagree about anything that matters. The moment an effect is allowed to deal damage, move a body or decide a hit, the property is gone and every one of those becomes a desync.
+That single property is what makes every mechanism here safe. A frame budget may drop one, a quality tier may refuse one, a distance cull may skip one, and a client whose content pack is still downloading simply does not see it. In none of those cases do two machines disagree about anything that matters. The moment an effect is allowed to deal damage, move a body or decide a hit, the property is gone and every one of those becomes a desync.
 
 So: dot-combat owns damage, dot-effects owns what happens over time, and this owns what it looks like.
 
@@ -36,13 +36,13 @@ It computes a displacement and touches no camera, which is why one implementatio
 Two details that make it read as shake rather than as a fault:
 
 - **Trauma, squared.** A linear falloff stops abruptly, because the last few per cent of a linear ramp is still visible motion. Squared spends most of its time near zero, so it fades.
-- **Sampled noise, not a random number per frame.** Random per frame is jitter at the frame rate, and it looks like a rendering fault — and it looks different at 60 and at 144 fps, where a noise path does not.
+- **Sampled noise, not a random number per frame.** Random per frame is jitter at the frame rate, and it looks like a rendering fault, and it looks different at 60 and at 144 fps, where a noise path does not.
 
 And `shake_scale` must be able to reach **zero**. Camera shake is one of the commonest causes of simulator sickness, and a game with no way to turn it off is a game some people cannot play. It is read every frame, so turning it off takes effect immediately rather than at the next map.
 
 ## A full-screen flash is a hazard before it is a style
 
-`allow_flashes` is a player-facing off switch and `flashes_per_second` defaults to **three**, which is the published photosensitivity guidance. Both are enforced in the manager rather than left to the caller, because the caller that does not honour them is the next feature somebody adds — and the person it harms has no way to know which effect did it.
+`allow_flashes` is a player-facing off switch and `flashes_per_second` defaults to **three**, which is the published photosensitivity guidance. Both are enforced in the manager rather than left to the caller, because the caller that does not honour them is the next feature somebody adds, and the person it harms has no way to know which effect did it.
 
 ## Decals are a ring
 

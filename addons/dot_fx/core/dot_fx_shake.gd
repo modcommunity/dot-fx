@@ -109,7 +109,12 @@ func offset() -> Vector3:
 	)
 
 
-## The 2D displacement, for a game on the XZ plane or a [Camera2D].
+## The 2D displacement, for a [Camera2D] or any game whose world is a plane.
+##
+## The X and Y components of the same three-axis sample. Which two of the three are taken
+## does not matter -- they come from three offsets into one noise field precisely so they
+## are uncorrelated -- and naming them X and Y rather than X and Z keeps the answer in the
+## axes a [Camera2D] actually has.
 func offset_2d() -> Vector2:
 	var o := offset()
 	return Vector2(o.x, o.y)
