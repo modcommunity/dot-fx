@@ -75,6 +75,6 @@ Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)
 
 [dot-core](https://github.com/modcommunity/dot-core). Nothing else.
 
-## License
+## Licence
 
-MIT.
+MIT. See [LICENSE](LICENSE).
