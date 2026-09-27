@@ -12,8 +12,8 @@ extends Node
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 7
-const CHECKS := 62
+const SECTIONS := 8
+const CHECKS := 65
 
 var _passed := 0
 var _failed := 0
@@ -36,6 +36,7 @@ func _run() -> void:
 	_test_decal_ring()
 	_test_shake()
 	_test_flash_limits()
+	_test_placed_before_entering()
 
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
@@ -477,3 +478,43 @@ func _check(condition: bool, what: String) -> void:
 
 func _line(text: String) -> void:
 	print(text)
+
+
+# --- 8 ----------------------------------------------------------------------
+
+func _test_placed_before_entering() -> void:
+	_section("An effect is where it was asked for on the frame it enters the tree")
+
+	# A particle emitter fires on entering, so the transform it has THEN is where its
+	# first burst goes. Read at `child_entered_tree`, which is after the child's own
+	# `_enter_tree` and before anything else could have moved it.
+	var m := _manager()
+	var d2 := _def(&"ripple")
+	d2.scene_path = "res://fixtures/blob_2d.tscn"
+	m.catalogue.add(d2)
+	var seen: Array = []
+	var on_enter := func(child: Node) -> void:
+		if child is Node3D:
+			seen.append((child as Node3D).global_position)
+		elif child is Node2D:
+			seen.append([(child as Node2D).global_position, (child as Node2D).rotation])
+	m.child_entered_tree.connect(on_enter)
+
+	var at := Transform3D(Basis(Vector3.UP, 0.7), Vector3(5.0, 2.0, -3.0))
+	var node := m.spawn(&"spark", at)
+	_check(node != null and seen.size() == 1 and (seen[0] as Vector3).is_equal_approx(at.origin),
+		"a 3D effect is at its transform when it enters, not at the origin")
+	_check(node != null and (node as Node3D).global_transform.is_equal_approx(at),
+		"and is still there afterwards, turned the way it was asked")
+
+	seen.clear()
+	var flat := m.spawn_2d(&"ripple", Vector2(40.0, -12.0), 0.5)
+	_check(
+		flat != null and seen.size() == 1
+			and ((seen[0] as Array)[0] as Vector2).is_equal_approx(Vector2(40.0, -12.0))
+			and is_equal_approx(float((seen[0] as Array)[1]), 0.5),
+		"a 2D effect is at its position and rotation when it enters"
+	)
+
+	m.child_entered_tree.disconnect(on_enter)
+	m.queue_free()

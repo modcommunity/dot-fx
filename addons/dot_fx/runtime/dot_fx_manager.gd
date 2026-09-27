@@ -161,13 +161,11 @@ func spawn(id: StringName, at: Transform3D, scale_hint: float = 1.0) -> Node:
 		spawned.emit(id, null, why)
 		return null
 
-	var node := _instance(def)
+	var node := _instance(def, at)
 	if node == null:
 		spawned.emit(id, null, &"missing")
 		return null
 
-	if node is Node3D:
-		(node as Node3D).global_transform = at
 	_budget_left -= def.cost
 	_concurrent[id] = int(_concurrent.get(id, 0)) + 1
 	var entry := {
@@ -194,11 +192,7 @@ func spawn_2d(id: StringName, at: Vector2, rotation: float = 0.0) -> Node:
 	var t := Transform3D.IDENTITY
 	t.origin = Vector3(at.x, 0.0, at.y)
 	t.basis = Basis(Vector3.UP, rotation)
-	var node := spawn(id, t)
-	if node is Node2D:
-		(node as Node2D).global_position = at
-		(node as Node2D).rotation = rotation
-	return node
+	return spawn(id, t)
 
 
 ## Spawns a decal, which is a spawn with a ring behind it.
@@ -243,7 +237,33 @@ func _may_spawn(def: DotFxDef, where: Vector3) -> StringName:
 	return &"ok"
 
 
-func _instance(def: DotFxDef) -> Node:
+## Places [param node] at [param at] BEFORE it enters the tree.
+##
+## [b]Before, because a particle emitter fires on entering.[/b] This used to add the
+## scene and then set its transform, so an emitter in world coordinates -- the default
+## for [CPUParticles3D] and [GPUParticles3D] -- spent its first burst at the world's
+## origin and only the later particles came from where the effect was asked for. The
+## node itself ended up in the right place, which is all a check of `global_position`
+## could see; game-g2gfast's gate effects found it only by being rendered (96b2be2).
+## A 2D node takes the transform's X and Z as its position and its yaw as its rotation,
+## which is how [method spawn_2d] encodes them.
+func _place(node: Node, at: Transform3D) -> void:
+	if node is Node3D:
+		var parent := _world as Node3D
+		(node as Node3D).transform = (
+			parent.global_transform.affine_inverse() * at
+			if parent != null and parent.is_inside_tree() else at
+		)
+	elif node is Node2D:
+		var flat := Transform2D(at.basis.get_euler().y, Vector2(at.origin.x, at.origin.z))
+		var parent_2d := _world as Node2D
+		(node as Node2D).transform = (
+			parent_2d.get_global_transform().affine_inverse() * flat
+			if parent_2d != null and parent_2d.is_inside_tree() else flat
+		)
+
+
+func _instance(def: DotFxDef, at: Transform3D = Transform3D.IDENTITY) -> Node:
 	if def.scene_path.is_empty():
 		return null
 	var packed: PackedScene = _scene_cache.get(def.scene_path)
@@ -258,6 +278,7 @@ func _instance(def: DotFxDef) -> Node:
 			return null
 		_scene_cache[def.scene_path] = packed
 	var node := packed.instantiate()
+	_place(node, at)
 	_world.add_child(node)
 	return node
 
