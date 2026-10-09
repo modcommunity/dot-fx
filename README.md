@@ -67,6 +67,21 @@ fx.advance(delta)
 
 `spawn_2d` is beside `spawn` rather than a widened signature, which is the choice the props and NPC assets made when they grew a second dimension: a caller holding a `Vector2` is a different caller.
 
+## A beacon, for saying where somebody is
+
+`DotFxBeacon` is a ring at a player's feet that sends out a ripple once a period, a column above them that shows through walls, and a ping that comes from where they are. Games use it for an admin's `beacon` and for rules that give the last players of a side away. It is built from shapes in code and makes its own ping, so it needs no art or sound files.
+
+```gdscript
+var marker := DotFxBeacon.new()
+marker.colour = Color(1.0, 0.6, 0.1)
+marker.period = 1.0
+marker.local_view = is_my_player        # no column in your own eyes
+add_child(marker)
+
+marker.global_position = drawn_position # once a frame, where the player is drawn
+marker.advance(delta)                   # true on the frame it pings
+```
+
 ## Installing
 
 Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)'s `addons/dot_core/` into your project and enable dot-fx in **Project → Project Settings → Plugins**.

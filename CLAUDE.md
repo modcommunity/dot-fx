@@ -49,6 +49,7 @@ And the three axes are three **different offsets into one noise field**. Samplin
 | `DotFxShake` | Trauma in, displacement out. Touches no camera. |
 | `DotFxConfig` | Quality, budgets, and the two accessibility settings. A `DotConfig`. |
 | `DotFxManager` | Ids in, effects out — or an honest refusal with a reason. |
+| `DotFxBeacon` | A marker that says where somebody is: a ring, a ripple, a column through walls, a ping. |
 
 ## Decisions
 
@@ -68,6 +69,10 @@ Deliberately opposite. An effect's whole value is being seen at the moment it ha
 
 `spawned(id, node, why)` names which rule refused: `unknown`, `quality`, `distance`, `behind`, `concurrent`, `instances`, `budget`, `missing`. A profiler wants it, a settings screen wants it, and so does anybody wondering why the smoke did not appear — and without it every one of the seven looks identical from outside.
 
+## The beacon is the one thing here that draws
+
+`DotFxBeacon` (2026-10-09) is a ring at a player's feet with a ripple once a period, a column with no depth test above them and a positional ping. Seven games had their own copy, three byte for byte, for an administrator's `beacon` and for the hiding games' rule that gives the last players of a side away. It is built from primitives (two flattened tori and a cylinder) and synthesises its ping when it is given no stream, so it ships no art and no sound, which is the line the next section draws. It keeps the invariant: nothing about it changes the simulation, it is placed where a player is drawn, and the server only decides who is marked. Set `local_view` for the marked player's own view, or a first-person camera stands inside the column.
+
 ## Things deliberately not here
 
 - **Any art, any particle, any shader.** dot-ui's rule. A game supplies the scenes; this decides whether, where and how many.
@@ -85,4 +90,4 @@ done
 timeout 120 godot --headless --path . res://examples/fx_selftest.tscn
 ```
 
-7 sections, 56 checks. What the suite cannot see is whether any of it **looks** right; that wants a screenshot, and this family has found four bugs with a picture that no assertion could reach. After changing anything that draws, render a frame and look at it.
+9 sections, 73 checks. What the suite cannot see is whether any of it **looks** right; that wants a screenshot, and this family has found four bugs with a picture that no assertion could reach. After changing anything that draws, render a frame and look at it.

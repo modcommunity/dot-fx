@@ -12,8 +12,8 @@ extends Node
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 8
-const CHECKS := 65
+const SECTIONS := 9
+const CHECKS := 73
 
 var _passed := 0
 var _failed := 0
@@ -37,6 +37,7 @@ func _run() -> void:
 	_test_shake()
 	_test_flash_limits()
 	_test_placed_before_entering()
+	_test_beacon()
 
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
@@ -518,3 +519,43 @@ func _test_placed_before_entering() -> void:
 
 	m.child_entered_tree.disconnect(on_enter)
 	m.queue_free()
+
+
+# --- 9 ----------------------------------------------------------------------
+
+func _test_beacon() -> void:
+	_section("A beacon pings once a period, and hides its column from its own player")
+
+	var b := DotFxBeacon.new()
+	b.period = 0.5
+	b.colour = Color(0.2, 0.8, 0.3)
+	add_child(b)
+
+	_check(b.advance(0.0), "it pings as it comes on, not a period later")
+
+	var pinged := 0
+	# Eighths of a second, which add up to exactly one: sixtieths fall a hair short of it.
+	for i in range(8):
+		if b.advance(0.125):
+			pinged += 1
+	# One second at a half-second period: two more, not one per frame.
+	_check(pinged == 2, "and once a period after that (%d in a second at 0.5 s)" % pinged)
+	_check(b.pings == 3, "and counts what it played (%d)" % b.pings)
+
+	_check(b.column_shown(), "the column is drawn for everybody else")
+	b.local_view = true
+	_check(not b.column_shown(), "and not in the marked player's own view")
+	b.local_view = false
+
+	var ring := b.get_node_or_null(^"Ring") as MeshInstance3D
+	var colour := (ring.material_override as StandardMaterial3D).albedo_color if ring != null else Color.BLACK
+	_check(ring != null and is_equal_approx(colour.g, 0.8) and is_equal_approx(colour.r, 0.2),
+		"the ring is the colour it was given")
+
+	_check(b.top_level, "it is top level, placed where the player is drawn")
+
+	var ping := DotFxBeacon.synth_ping()
+	_check(ping != null and ping.data.size() > 1000, "with no stream a ping is synthesised (%d bytes)" % ping.data.size())
+
+	remove_child(b)
+	b.free()
