@@ -57,6 +57,10 @@ extends Node3D
 ## Metres the ping carries. Past this a ping is noise from nowhere.
 @export_range(0.0, 2000.0, 1.0) var ping_range: float = 180.0
 
+## Whether the marker pings at all. Off for a game that plays the ping through its own
+## sound catalogue (listening for the [method advance] return), so it is not heard twice.
+@export var ping_enabled: bool = true
+
 ## The ping, or null to synthesise one.
 @export var ping_stream: AudioStream = null
 
@@ -136,15 +140,17 @@ func build() -> void:
 	_column.visible = not local_view and column_height > 0.0
 	add_child(_column)
 
-	_voice = AudioStreamPlayer3D.new()
-	_voice.name = "Ping"
-	_voice.stream = ping_stream if ping_stream != null else synth_ping()
-	_voice.unit_size = 20.0
-	_voice.max_distance = ping_range
-	_voice.volume_db = ping_volume_db
-	_voice.bus = ping_bus
-	_voice.position = Vector3(0.0, 1.0, 0.0)
-	add_child(_voice)
+	_voice = null
+	if ping_enabled:
+		_voice = AudioStreamPlayer3D.new()
+		_voice.name = "Ping"
+		_voice.stream = ping_stream if ping_stream != null else synth_ping()
+		_voice.unit_size = 20.0
+		_voice.max_distance = ping_range
+		_voice.volume_db = ping_volume_db
+		_voice.bus = ping_bus
+		_voice.position = Vector3(0.0, 1.0, 0.0)
+		add_child(_voice)
 
 	if _phase < 0.0:
 		_phase = period
@@ -166,7 +172,7 @@ func advance(delta: float) -> bool:
 		pinged = true
 		pings += 1
 
-		if _voice.is_inside_tree():
+		if _voice != null and _voice.is_inside_tree():
 			_voice.play()
 
 	var t := _phase / period

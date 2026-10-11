@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 9
-const CHECKS := 73
+const CHECKS := 75
 
 var _passed := 0
 var _failed := 0
@@ -559,3 +559,18 @@ func _test_beacon() -> void:
 
 	remove_child(b)
 	b.free()
+
+	# ping_enabled off: still ripples and counts, with no voice of its own to play, so a
+	# game that plays the ping through its own catalogue is not heard twice.
+	var quiet := DotFxBeacon.new()
+	quiet.ping_enabled = false
+	add_child(quiet)
+	_check(quiet.advance(0.0) and quiet.get_node_or_null(^"Ping") == null,
+		"with ping_enabled off it still reports the ripple and builds no voice")
+	quiet.ring_radius = 2.0
+	quiet.build()
+	var big := quiet.get_node_or_null(^"Ring") as MeshInstance3D
+	_check(big != null and quiet.advance(0.1) == false,
+		"and rebuilding at a new size works without one")
+	remove_child(quiet)
+	quiet.free()
