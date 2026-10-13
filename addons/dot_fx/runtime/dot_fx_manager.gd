@@ -70,6 +70,9 @@ var _live: Array[Dictionary] = []
 var _decals: Array[Dictionary] = []
 var _concurrent: Dictionary = {}
 var _budget_left := 0
+## What started since the last [method advance]: the only effects a higher-priority request
+## may displace, because nobody has seen a frame of them yet.
+var _this_frame: Array[Dictionary] = []
 var _flash_times: Array[int] = []
 var _flash_decay_ms := 250
 var _scene_cache: Dictionary = {}
@@ -133,6 +136,9 @@ func advance(delta: float) -> void:
 		if now >= int(entry["expires"]):
 			_retire(i)
 
+	# A lowered cap applies from the next frame, not only at the next decal.
+	_trim_decals()
+	_this_frame.clear()
 	_budget_left = config.frame_budget if config.frame_budget > 0 else 1 << 30
 
 
@@ -173,7 +179,10 @@ func spawn(id: StringName, at: Transform3D, scale_hint: float = 1.0) -> Node:
 		"node": node,
 		"expires": Time.get_ticks_msec() + def.lifetime_ms,
 		"decal": def.kind == DotFxDef.Kind.DECAL,
+		"cost": def.cost,
+		"priority": def.priority,
 	}
+	_this_frame.append(entry)
 	if def.kind == DotFxDef.Kind.DECAL:
 		_decals.append(entry)
 		_trim_decals()
@@ -223,16 +232,18 @@ func _may_spawn(def: DotFxDef, where: Vector3) -> StringName:
 	if def.max_concurrent > 0 and int(_concurrent.get(def.id, 0)) >= def.max_concurrent:
 		return &"concurrent"
 
+	# The budget before the instance cap, so a request the budget refuses has not already
+	# retired a live effect to make room for itself.
+	if config.frame_budget > 0 and def.cost > _budget_left and not _make_room(def):
+		return &"budget"
+
 	if _live.size() >= config.max_instances:
-		# Recycling the oldest non-decal rather than refusing. An effect's whole value is
+		# Recycling the oldest rather than refusing. An effect's whole value is
 		# being seen at the moment it happens, so the newest is always worth more than the
 		# oldest -- the opposite of the audio pool, where stealing by age is what makes a
 		# gunshot lose to a footstep.
 		if not _retire_oldest():
 			return &"instances"
-
-	if config.frame_budget > 0 and def.cost > _budget_left:
-		return &"budget"
 
 	return &"ok"
 
@@ -283,9 +294,40 @@ func _instance(def: DotFxDef, at: Transform3D = Transform3D.IDENTITY) -> Node:
 	return node
 
 
+## Frees this frame's budget for [param def] by retiring effects of lower priority that
+## started this frame, lowest priority first and the newest of a tie first. All or nothing:
+## when even all of them would not make room, nothing is retired.
+##
+## [b]Only this frame's.[/b] The budget is what may START in a frame; an effect from an earlier
+## frame has been seen and costs nothing more, so displacing it would refund nothing real.
+## [member DotFxDef.priority] used to be documented as "higher survives when the budget is
+## spent" and read by nothing: the budget went first come, first served.
+func _make_room(def: DotFxDef) -> bool:
+	var lower: Array[Dictionary] = []
+	var freed := 0
+	for entry: Dictionary in _this_frame:
+		if int(entry["priority"]) < def.priority:
+			lower.append(entry)
+			freed += int(entry["cost"])
+	if _budget_left + freed < def.cost:
+		return false
+	lower.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a["priority"]) < int(b["priority"]) \
+			or (int(a["priority"]) == int(b["priority"]) and _this_frame.find(a) > _this_frame.find(b)))
+	for entry: Dictionary in lower:
+		if def.cost <= _budget_left:
+			break
+		var at := _live.find(entry)
+		if at >= 0:
+			_retire(at)
+		_budget_left += int(entry["cost"])
+	return def.cost <= _budget_left
+
+
 func _retire(index: int) -> void:
 	var entry := _live[index]
 	_live.remove_at(index)
+	_this_frame.erase(entry)
 	var id: StringName = entry["id"]
 	_concurrent[id] = maxi(0, int(_concurrent.get(id, 1)) - 1)
 	_decals.erase(entry)
@@ -294,12 +336,18 @@ func _retire(index: int) -> void:
 		node.queue_free()
 
 
+## The oldest effect that is not a decal, else the oldest decal. Decals used to be skipped
+## outright, so with [member DotFxConfig.max_instances] of long-lived decals alive (both
+## default to 256) every spawn was refused, a decal's own ring included.
 func _retire_oldest() -> bool:
 	for i in range(_live.size()):
 		if not bool(_live[i]["decal"]):
 			_retire(i)
 			return true
-	return false
+	if _live.is_empty():
+		return false
+	_retire(0)
+	return true
 
 
 func _trim_decals() -> void:

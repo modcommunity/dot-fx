@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 9
-const CHECKS := 75
+const CHECKS := 81
 
 var _passed := 0
 var _failed := 0
@@ -257,6 +257,44 @@ func _test_budget_and_culling() -> void:
 		"so an effect refused this frame is not refused for ever"
 	)
 
+	# Priority decides what a full frame keeps: the collapse (40, priority 90) asked for after
+	# ten sparks (1 each, priority 20) takes the room of five of them, in the same frame.
+	m.config.frame_budget = 45
+	m.advance(0.016)
+	var sparks: Array[Node] = []
+	for _i in range(10):
+		sparks.append(m.spawn(&"spark", Transform3D.IDENTITY))
+	var collapse := m.spawn(&"collapse", Transform3D.IDENTITY)
+	var kept := 0
+	for spark in sparks:
+		if is_instance_valid(spark) and not spark.is_queued_for_deletion():
+			kept += 1
+	_check(collapse != null and kept == 5, "a higher priority takes a full frame's room from lower ones started in it")
+	_check(m.spawn(&"spark", Transform3D.IDENTITY) == null, "and a lower one never takes it back")
+	m.advance(0.016)
+	m.config.frame_budget = 10
+	m.advance(0.016)
+	_check(
+		m.spawn(&"collapse", Transform3D.IDENTITY) == null and is_instance_valid(collapse)
+			and not collapse.is_queued_for_deletion(),
+		"while one too dear for the whole frame is refused, displacing nothing"
+	)
+	m.clear()
+
+	# A refused request retires nothing: the budget is asked before the instance cap recycles.
+	var tight := DotFxConfig.new()
+	tight.quality = 3
+	tight.frame_budget = 1
+	tight.max_instances = 1
+	var t := _manager(tight)
+	var first := t.spawn(&"spark", Transform3D.IDENTITY)
+	_check(
+		t.spawn(&"spark", Transform3D.IDENTITY) == null and is_instance_valid(first)
+			and not first.is_queued_for_deletion(),
+		"a request the budget refuses has not already retired a live effect"
+	)
+	t.queue_free()
+
 	# This is only safe because of the one invariant the whole addon rests on: an effect
 	# never changes the simulation, so a client that dropped one and a client that did not
 	# are playing the same game.
@@ -321,6 +359,20 @@ func _test_decal_ring() -> void:
 	m.config.max_decals = 2
 	m.spawn_decal(&"bullet_hole", Transform3D.IDENTITY)
 	_check(m.decal_count() == 2, "and lowering the cap takes effect immediately")
+	m.config.max_decals = 1
+	m.advance(0.016)
+	_check(m.decal_count() == 1, "or at the next frame, with no decal spawned")
+
+	# Decals at the instance cap used to refuse every spawn: recycling skipped decals.
+	m.clear()
+	m.config.max_decals = 3
+	m.config.max_instances = 3
+	for _i in range(3):
+		m.spawn_decal(&"bullet_hole", Transform3D.IDENTITY)
+	_check(
+		m.spawn(&"spark", Transform3D.IDENTITY) != null and m.live_count() == 3,
+		"with the cap all decals, a new effect recycles the oldest decal instead of being refused"
+	)
 
 	m.clear()
 	_check(m.live_count() == 0 and m.decal_count() == 0, "clear takes everything, for a map change")

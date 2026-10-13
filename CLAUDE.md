@@ -39,7 +39,7 @@ The family's two steps ([game-dev/CLAUDE.md](../../CLAUDE.md#validating-anything
 - Shake is trauma squared, sampled from noise, with three different offsets into one field for the three axes. [design](docs/design.md#two-details-that-make-shake-read-as-shake)
 - A definition names its scene by path, never a `PackedScene`. [design](docs/design.md#a-path-not-a-packedscene)
 - Call `advance()` yourself; nothing runs in `_process`. [design](docs/design.md#advance-is-explicit-not-_process)
-- At the instance cap the oldest non-decal is recycled, the opposite of dot-audio's pool. [design](docs/design.md#the-instance-pool-recycles-the-oldest-and-the-audio-pool-does-not)
+- At the instance cap the oldest non-decal is recycled (else the oldest decal), the opposite of dot-audio's pool; the budget is checked first, and a higher `priority` displaces only this frame's lower ones. [design](docs/design.md#the-instance-pool-recycles-the-oldest-and-the-audio-pool-does-not)
 - Every refusal emits `spawned(id, null, why)` with its reason; a new rule gets a new reason. [design](docs/design.md#refusals-carry-a-reason)
 - `DotFxBeacon.local_view` for the marked player's own view, or the camera stands inside the column. [design](docs/design.md#the-beacon-is-the-one-thing-here-that-draws)
 

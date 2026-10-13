@@ -21,7 +21,7 @@ So: dot-combat owns damage, dot-effects owns what happens over time, and this ow
 
 `min_quality` gates whether an effect **exists**, not how detailed it is. Halving the particle count on the effect that is killing the frame does not save the frame; not spawning it does. A "low" tier built the other way is one where everything looks worse and the frame rate is the same.
 
-`frame_budget` is the same idea per frame: a grenade landing in a crowd cannot cost more than one frame has, and what goes is the lowest-priority request.
+`frame_budget` is the same idea per frame: a grenade landing in a crowd cannot cost more than one frame has, and what goes is the lowest-priority request: one of higher `priority` takes the room of lower ones started in the same frame (never of an effect already on screen), and a request the budget refuses retires nothing.
 
 ## Camera shake is a value, and has to be able to be off
 
@@ -46,7 +46,7 @@ And `shake_scale` must be able to reach **zero**. Camera shake is one of the com
 
 ## Decals are a ring
 
-An unbounded decal list grows with the **round** rather than with the number of players, which makes it invisible in testing and fatal at minute forty. `max_decals` recycles the oldest, and lowering it takes effect immediately.
+An unbounded decal list grows with the **round** rather than with the number of players, which makes it invisible in testing and fatal at minute forty. `max_decals` recycles the oldest, and lowering it takes effect at the next decal or the next `advance`, whichever comes first.
 
 ## Using it
 

@@ -44,7 +44,7 @@ A game that pauses, a replay being scrubbed and a suite stepping one frame at a 
 
 ## The instance pool recycles the oldest, and the audio pool does not
 
-Deliberately opposite. An effect's whole value is being seen at the moment it happens, so when `max_instances` is reached the oldest non-decal is taken back and the newest is drawn (decals are bounded separately by `max_decals`, oldest first). A voice's value is what it is *of*, so dot-audio steals by **priority** and refuses rather than stealing something more important: a gunshot losing to a footstep that started first is that pool's failure mode.
+Deliberately opposite. An effect's whole value is being seen at the moment it happens, so when `max_instances` is reached the oldest non-decal is taken back and the newest is drawn (decals are bounded separately by `max_decals`, oldest first), and when every live effect is a decal the oldest decal goes: skipping decals outright let a cap full of them refuse every spawn. The budget is asked first, so a request it refuses has recycled nothing. A voice's value is what it is *of*, so dot-audio steals by **priority** and refuses rather than stealing something more important: a gunshot losing to a footstep that started first is that pool's failure mode.
 
 ## Refusals carry a reason
 
