@@ -9,5 +9,6 @@ extends RefCounted
 # 1: everything before this file existed (an absent file reads as 1).
 # 2: DotFxBeacon, the marker that says where somebody is.
 # 3: DotFxBeacon.ping_enabled, for a game that plays the ping through its own catalogue.
-const LEVEL := 3
+# 4: DotFxBeacon.resize(), ring radius and column height applied to a beacon that exists.
+const LEVEL := 4
 const OLDEST := 1

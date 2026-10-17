@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 9
-const CHECKS := 81
+const CHECKS := 84
 
 var _passed := 0
 var _failed := 0
@@ -626,3 +626,28 @@ func _test_beacon() -> void:
 		"and rebuilding at a new size works without one")
 	remove_child(quiet)
 	quiet.free()
+
+	# resize(): a live beacon changes size without being rebuilt, and keeps its phase.
+	var live := DotFxBeacon.new()
+	add_child(live)
+	var _p := live.advance(0.0)
+	var _q := live.advance(0.3)
+	var ring_before := live.get_node(^"Ring")
+	var voice_before := live.get_node_or_null(^"Ping")
+	var phase_before := live._phase
+	live.resize(5.0, 14.0, 4.0)
+	var col := live.get_node(^"Column") as MeshInstance3D
+	var torus := (live.get_node(^"Ring") as MeshInstance3D).mesh as TorusMesh
+	_check(live.get_node(^"Ring") == ring_before and live.get_node_or_null(^"Ping") == voice_before
+		and is_equal_approx(live._phase, phase_before),
+		"resize() edits the meshes in place: same nodes, same voice, same phase")
+	_check(is_equal_approx(torus.outer_radius, 5.0)
+		and is_equal_approx((col.mesh as CylinderMesh).height, 14.0)
+		and is_equal_approx(col.position.y, 11.0),
+		"and the ring, the column's length and where it starts all follow")
+	live.local_view = true
+	live.resize(1.0, 3.0)
+	_check(not live.column_shown() and is_equal_approx(live.column_base, 4.0),
+		"a resize keeps the column hidden in the marked player's own view and the base it had")
+	remove_child(live)
+	live.free()

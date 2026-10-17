@@ -107,7 +107,7 @@ func _ready() -> void:
 
 
 ## Builds the meshes and the voice from the current settings. Called on entering the tree;
-## call it again after changing [member colour], [member column_height] or [member ring_radius].
+## call it again after changing [member colour]; for a size use [method resize], which does not rebuild.
 func build() -> void:
 	for child in [_ring, _ripple, _column, _voice]:
 		if child != null:
@@ -185,6 +185,32 @@ func advance(delta: float) -> bool:
 	_ring_material.albedo_color.a = lerpf(0.95, 0.55, t)
 
 	return pinged
+
+
+## Resizes a marker that already exists, keeping its phase, its pings and its materials.
+##
+## [method build] rebuilds everything, which restarts nothing visible but frees and re-adds
+## the voice and the meshes: wrong for a marker that changes size while it is running (a
+## beacon that follows a player from on foot into a vehicle and back, every time they
+## board). This edits the meshes in place instead. A negative [param base] leaves
+## [member column_base] alone.
+func resize(radius: float, height: float, base: float = -1.0) -> void:
+	ring_radius = clampf(radius, 0.1, 10.0)
+	column_height = clampf(height, 0.0, 500.0)
+	if base >= 0.0:
+		column_base = base
+	if not _built:
+		return
+
+	var ring_mesh := _ring.mesh as TorusMesh
+	ring_mesh.inner_radius = ring_radius * 0.775
+	ring_mesh.outer_radius = ring_radius
+	var ripple_mesh := _ripple.mesh as TorusMesh
+	ripple_mesh.inner_radius = ring_radius * 0.825
+	ripple_mesh.outer_radius = ring_radius * 0.95
+	(_column.mesh as CylinderMesh).height = maxf(column_height, 0.01)
+	_column.position = Vector3(0.0, column_height * 0.5 + column_base, 0.0)
+	_column.visible = not local_view and column_height > 0.0
 
 
 ## Whether the column is being drawn. For a check.

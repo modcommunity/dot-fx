@@ -84,6 +84,8 @@ marker.advance(delta)                   # true on the frame it pings
 
 A game that plays the ping through its own sound catalogue sets `marker.ping_enabled = false` (API level 3, before `add_child` or followed by `build()`): no voice is built, and `advance()` still returns true on each pulse so the game plays its own sound from that. Without it the ping would be heard twice.
 
+To change the size of a marker that is already running, call `marker.resize(radius, height, base)` (API level 4); it edits the meshes in place and keeps the phase, where `build()` frees and rebuilds them.
+
 ## Installing
 
 Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)'s `addons/dot_core/` into your project and enable dot-fx in **Project → Project Settings → Plugins**.
