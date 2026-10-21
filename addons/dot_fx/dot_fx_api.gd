@@ -10,5 +10,6 @@ extends RefCounted
 # 2: DotFxBeacon, the marker that says where somebody is.
 # 3: DotFxBeacon.ping_enabled, for a game that plays the ping through its own catalogue.
 # 4: DotFxBeacon.resize(), ring radius and column height applied to a beacon that exists.
-const LEVEL := 4
+# 5: DotFxWeather and DotFxWeatherDef, snow and rain inside volumes; DotFxConfig.weather_quality and weather_density.
+const LEVEL := 5
 const OLDEST := 1

@@ -86,6 +86,35 @@ A game that plays the ping through its own sound catalogue sets `marker.ping_ena
 
 To change the size of a marker that is already running, call `marker.resize(radius, height, base)` (API level 4); it edits the meshes in place and keeps the phase, where `build()` frees and rebuilds them.
 
+## Weather: snow and rain inside volumes
+
+`DotFxWeather` draws snow or rain around the camera, only inside boxes the document names (or everywhere around the camera when it names none). One `MultiMesh` of quads is placed entirely in a vertex shader, so there are no particle nodes, no per-frame transforms and no collision: a flake outside every volume is collapsed in the shader, which is how nothing falls through a roof. It runs under the Compatibility renderer in the browser.
+
+```gdscript
+var w := DotFxWeather.new()
+add_child(w)
+var res := w.apply(map_document["weather"])        # DotResult; a bad document keeps the old weather
+w.quality = DotFxWeather.Quality.HIGH              # OFF, LOW (a third of the flakes), HIGH
+w.density_scale = 1.0                              # a player's slider, 0 to 2
+w.audible_changed.connect(_on_weather_sound)       # (sound id, inside): the game plays its own sound
+w.advance(delta, camera.global_position)           # once a frame
+```
+
+The document, validated by `DotFxWeatherDef.parse()`:
+
+```json
+{
+  "kind": "snow",
+  "volumes": [{"min": [-10, 0, -10], "max": [10, 12, 10]}, {"center": [40, 5, 0], "size": [8, 10, 8]}],
+  "density": 1.0,
+  "wind": [1.5, 0, 0],
+  "colour": "#ffffff",
+  "sound": "amb_wind"
+}
+```
+
+`kind` is `snow` or `rain` and is the only required key. `volumes` are axis-aligned world-space boxes, as `min`/`max` or `center`/`size`; none means everywhere. Unknown keys are refused so a misspelt `volumes` cannot read as "everywhere". `DotFxConfig.weather_quality` (0, 1, 2) and `weather_density` carry the settings; `apply_config()` reads them. Weather is skipped without a display (`DotFxWeather.can_render()`, false on a dedicated server). More in [docs/weather.md](docs/weather.md); run `examples/weather_demo.tscn`.
+
 ## Installing
 
 Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)'s `addons/dot_core/` into your project and enable dot-fx in **Project → Project Settings → Plugins**.

@@ -38,6 +38,12 @@ extends DotConfig
 ## How many spawned effects may exist at once, across every id.
 @export_range(1, 4096, 1) var max_instances: int = 256
 
+## Falling weather: 0 off, 1 low (a third of the flakes), 2 high. Read by [DotFxWeather].
+@export_range(0, 2, 1) var weather_quality: int = 2
+
+## Scales the thickness of falling weather, 0 to 2.
+@export_range(0.0, 2.0, 0.05) var weather_density: float = 1.0
+
 @export_group("Accessibility")
 
 ## Multiplies every shake. Zero turns it off entirely.

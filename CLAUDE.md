@@ -10,6 +10,7 @@ Read the family [CLAUDE.md](../../CLAUDE.md) first.
 
 | Read | Before |
 | --- | --- |
+| [docs/weather.md](docs/weather.md) | touching `DotFxWeather`: why a shader and not particles, how volumes clip, the knobs |
 | [docs/design.md](docs/design.md) | changing anything: the invariant, the accessibility settings, how shake is computed, paths not scenes, explicit `advance()`, the pool, refusal reasons, the beacon, what is deliberately not here |
 
 ## Layout
@@ -22,6 +23,8 @@ Read the family [CLAUDE.md](../../CLAUDE.md) first.
 | `core/dot_fx_config.gd` | `DotFxConfig`: quality, budgets, `shake_scale`, `allow_flashes`, `flash_cap`, `flashes_per_second` (a `DotConfig`) |
 | `runtime/dot_fx_manager.gd` | `DotFxManager`: ids in, effects out, or a refusal with a reason; `advance`, `spawn`, `spawn_decal`, `shake_at`, `flash` |
 | `runtime/dot_fx_beacon.gd` | `DotFxBeacon`: ring, ripple, through-wall column and ping marking where somebody is |
+| `core/dot_fx_weather_def.gd` | `DotFxWeatherDef`: the weather document (`parse()` returns a `DotResult`) |
+| `runtime/dot_fx_weather.gd` | `DotFxWeather`: snow or rain in volumes around the camera, one shader-placed MultiMesh |
 | `dot_fx_api.gd` | the API level (`DotAddonApi` rule) |
 | `examples/fx_selftest.tscn` | the suite; `fixtures/` holds the stand-in scenes it spawns |
 
@@ -43,7 +46,7 @@ The family's two steps ([game-dev/CLAUDE.md](../../CLAUDE.md#validating-anything
 - Every refusal emits `spawned(id, null, why)` with its reason; a new rule gets a new reason. [design](docs/design.md#refusals-carry-a-reason)
 - `DotFxBeacon.local_view` for the marked player's own view, or the camera stands inside the column. [design](docs/design.md#the-beacon-is-the-one-thing-here-that-draws)
 
-Deliberately not here: art, particles, shaders, a post-processing stack, effect networking. [design](docs/design.md#things-deliberately-not-here)
+Deliberately not here: art, particle effects (weather is the one exception and is a shader), shaders, a post-processing stack, effect networking. [design](docs/design.md#things-deliberately-not-here)
 
 ## Open items
 

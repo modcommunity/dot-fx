@@ -12,8 +12,8 @@ extends Node
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 9
-const CHECKS := 84
+const SECTIONS := 10
+const CHECKS := 105
 
 var _passed := 0
 var _failed := 0
@@ -38,6 +38,7 @@ func _run() -> void:
 	_test_flash_limits()
 	_test_placed_before_entering()
 	_test_beacon()
+	_test_weather()
 
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
@@ -651,3 +652,76 @@ func _test_beacon() -> void:
 		"a resize keeps the column hidden in the marked player's own view and the base it had")
 	remove_child(live)
 	live.free()
+
+
+# --- 10 ---------------------------------------------------------------------
+
+func _test_weather() -> void:
+	_section("Weather is a validated document, falls only in its volumes, and is off without a display")
+
+	var good := {
+		"kind": "snow",
+		"volumes": [
+			{"min": [-10, 0, -10], "max": [10, 12, 10]},
+			{"center": [40, 5, 0], "size": [8, 10, 8]},
+		],
+		"density": 1.5, "wind": [1, 0, 0], "colour": "#ddeeff", "sound": "amb_wind",
+	}
+	var res := DotFxWeatherDef.parse(good)
+	_check(res.ok, "a good document parses")
+	var def: DotFxWeatherDef = res.value
+	_check(def.kind == &"snow" and def.volumes.size() == 2 and is_equal_approx(def.density, 1.5), "kind, volumes and density read back")
+	_check(def.volumes[1].position.is_equal_approx(Vector3(36, 0, -4)) and def.sound == &"amb_wind", "a centre and size is a box; the sound id is kept")
+	_check(DotFxWeatherDef.parse(def.to_dict()).ok, "to_dict parses again")
+
+	var bad := good.duplicate(true)
+	bad["kind"] = "hail"
+	_check(DotFxWeatherDef.parse(bad).code() == DotError.CODE_INVALID, "an unknown kind is invalid")
+	bad = good.duplicate(true)
+	bad["volumes"] = [{"min": [0, 0, 0], "max": [0, 5, 5]}]
+	_check(not DotFxWeatherDef.parse(bad).ok, "a flat volume is refused")
+	bad = good.duplicate(true)
+	bad["volums"] = []
+	_check(not DotFxWeatherDef.parse(bad).ok, "a misspelt key is refused, not read as everywhere")
+	bad = good.duplicate(true)
+	bad["density"] = 9
+	_check(not DotFxWeatherDef.parse(bad).ok, "density out of range is refused")
+	_check(DotFxWeatherDef.parse({"kind": "rain"}).value.volumes.is_empty(), "no volumes means everywhere")
+
+	# Which volumes reach the shader.
+	var region := AABB(Vector3(5, 0, 0) - Vector3(14, 9, 14), Vector3(28, 18, 28))
+	var picked := DotFxWeather.select_volumes(def.volumes, region, Vector3(5, 0, 0))
+	_check(picked.size() == 1 and picked[0] == def.volumes[0], "only the volume the camera's box overlaps is picked")
+	_check(DotFxWeather.select_volumes(def.volumes, AABB(Vector3(100, 0, 100), Vector3(5, 5, 5)), Vector3(100, 0, 100)).is_empty(), "far from every volume, none is picked")
+	var many: Array[AABB] = []
+	for i in range(40):
+		many.append(AABB(Vector3(i, 0, 0), Vector3.ONE))
+	var capped := DotFxWeather.select_volumes(many, AABB(Vector3(-5, -5, -5), Vector3(100, 10, 10)), Vector3.ZERO)
+	_check(capped.size() == DotFxWeather.MAX_ACTIVE and capped[0] == many[0], "past the shader's limit the nearest are kept")
+	_check(DotFxWeather.inside_any(def.volumes, Vector3(0, 5, 0)) and not DotFxWeather.inside_any(def.volumes, Vector3(20, 5, 0)), "inside_any says where the camera is")
+
+	# Quality and density.
+	var high := DotFxWeather.flakes_for(&"snow", 1.0, DotFxWeather.Quality.HIGH)
+	var low := DotFxWeather.flakes_for(&"snow", 1.0, DotFxWeather.Quality.LOW)
+	_check(DotFxWeather.flakes_for(&"snow", 1.0, DotFxWeather.Quality.OFF) == 0 and low > 0 and low < high, "off draws none, low fewer than high")
+	_check(DotFxWeather.flakes_for(&"rain", 4.0, DotFxWeather.Quality.HIGH) <= DotFxWeather.MAX_FLAKES, "flakes are capped")
+
+	var cfg := DotFxConfig.new()
+	cfg.weather_quality = 1
+	cfg.weather_density = 0.5
+	var w := DotFxWeather.new()
+	add_child(w)
+	w.apply_config(cfg)
+	_check(w.quality == DotFxWeather.Quality.LOW and is_equal_approx(w.density_scale, 0.5), "the config drives quality and density")
+
+	# The sound hook, and the no-display rule. Headless here, so nothing is drawn.
+	_check(not DotFxWeather.can_render(), "this suite runs without a display, so weather cannot render")
+	_check(w.apply({"kind": "snow", "volumes": [{"min": [-10, 0, -10], "max": [10, 12, 10]}], "sound": "wind"}).ok, "apply accepts a document")
+	var events: Array = []
+	w.audible_changed.connect(func(id: StringName, inside_now: bool) -> void: events.append([id, inside_now]))
+	w.advance(0.016, Vector3(0, 2, 0))
+	w.advance(0.016, Vector3(50, 2, 0))
+	_check(events == [[&"wind", true], [&"wind", false]], "the sound hook fires on entering and leaving a volume")
+	_check(w.get_child_count() == 0 and w.describe().contains("not drawn"), "no display: nothing was built")
+	_check(not w.apply({"kind": "fog"}).ok and w.definition.kind == &"snow", "a bad document leaves the old weather")
+	w.queue_free()
