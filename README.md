@@ -115,6 +115,26 @@ The document, validated by `DotFxWeatherDef.parse()`:
 
 `kind` is `snow` or `rain` and is the only required key. `volumes` are axis-aligned world-space boxes, as `min`/`max` or `center`/`size`; none means everywhere. Unknown keys are refused so a misspelt `volumes` cannot read as "everywhere". `DotFxConfig.weather_quality` (0, 1, 2) and `weather_density` carry the settings; `apply_config()` reads them. Weather is skipped without a display (`DotFxWeather.can_render()`, false on a dedicated server). More in [docs/weather.md](docs/weather.md); run `examples/weather_demo.tscn`.
 
+## Decals
+
+`DotFxDecals` spawns pooled, capped, fading blood splatters from a hit position and normal, and places static wall decals (graffiti) from data. It uses `Decal` nodes where the renderer has them and textured quads just off the surface under Compatibility and the web. `DotFxDecalConfig` carries the gore toggle, quality tier, caps, hold and fade times and blood colour, layered like every `DotConfig` (`DOT_FX_DECAL_*`, `--decal-*`).
+
+```gdscript
+var decals := DotFxDecals.new()
+add_child(decals)
+decals.apply_config(cfg)                                  # DotFxDecalConfig
+decals.splatter(hit_position, hit_normal)                 # null when gore is off
+decals.place({"image": "alien", "position": [1, 2, 3], "normal": [0, 0, 1], "width": 1.5})
+decals.advance(delta)                                     # once a frame
+```
+
+Images: `alien`, `warning`, `drip`, `beast`, `spider`, `tentacle`, `robot`. Run `examples/decals_selftest.tscn` (headless) and `examples/decals_demo.tscn`.
+
+Art, both CC0:
+
+- Blood splatter by ExileGL, https://opengameart.org/content/blood-splatter (CC0), downscaled to six 256 px frames in `art/blood_splatter.png`.
+- Graffiti Decals 64x by Mumu, https://opengameart.org/content/graffiti-decals-64x (CC0), `art/graffiti.png`.
+
 ## Installing
 
 Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)'s `addons/dot_core/` into your project and enable dot-fx in **Project → Project Settings → Plugins**.

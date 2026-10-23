@@ -11,5 +11,6 @@ extends RefCounted
 # 3: DotFxBeacon.ping_enabled, for a game that plays the ping through its own catalogue.
 # 4: DotFxBeacon.resize(), ring radius and column height applied to a beacon that exists.
 # 5: DotFxWeather and DotFxWeatherDef, snow and rain inside volumes; DotFxConfig.weather_quality and weather_density.
-const LEVEL := 5
+# 6: DotFxDecals, DotFxDecalConfig and DotFxDecalSheet: pooled blood splatters and data-placed static decals.
+const LEVEL := 6
 const OLDEST := 1

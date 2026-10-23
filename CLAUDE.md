@@ -25,7 +25,9 @@ Read the family [CLAUDE.md](../../CLAUDE.md) first.
 | `runtime/dot_fx_beacon.gd` | `DotFxBeacon`: ring, ripple, through-wall column and ping marking where somebody is |
 | `core/dot_fx_weather_def.gd` | `DotFxWeatherDef`: the weather document (`parse()` returns a `DotResult`) |
 | `runtime/dot_fx_weather.gd` | `DotFxWeather`: snow or rain in volumes around the camera, one shader-placed MultiMesh |
+| `runtime/dot_fx_decals.gd` | `DotFxDecals`: pooled blood splatters (`splatter(pos, normal)`) and static decals from data (`place`, `place_all`); Decal nodes, or quads under Compatibility/web. Config: `core/dot_fx_decal_config.gd` (`DOT_FX_DECAL_*`, `--decal-*`); art sliced by `runtime/dot_fx_decal_sheet.gd` from `art/` |
 | `dot_fx_api.gd` | the API level (`DotAddonApi` rule) |
+| `examples/decals_selftest.tscn` | the decal suite; `decals_demo.tscn` + `tools/screenshot.sh <png> [mesh\|decal]` draw it |
 | `examples/fx_selftest.tscn` | the suite; `fixtures/` holds the stand-in scenes it spawns |
 
 Paths except `examples/` and `fixtures/` are in `addons/dot_fx/`.
