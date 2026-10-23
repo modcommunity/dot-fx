@@ -12,5 +12,6 @@ extends RefCounted
 # 4: DotFxBeacon.resize(), ring radius and column height applied to a beacon that exists.
 # 5: DotFxWeather and DotFxWeatherDef, snow and rain inside volumes; DotFxConfig.weather_quality and weather_density.
 # 6: DotFxDecals, DotFxDecalConfig and DotFxDecalSheet: pooled blood splatters and data-placed static decals.
-const LEVEL := 6
+# 7: DotFxBlood, splatter behind a hit or under a victim (rays, settings, server splat rate limit).
+const LEVEL := 7
 const OLDEST := 1

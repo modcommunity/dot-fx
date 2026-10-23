@@ -128,6 +128,8 @@ decals.place({"image": "alien", "position": [1, 2, 3], "normal": [0, 0, 1], "wid
 decals.advance(delta)                                     # once a frame
 ```
 
+`DotFxBlood` wraps a `DotFxDecals` with what every game that draws blood repeats: `splat_behind(from, to)` (the surface behind a hit), `splat_below(feet)` (the floor under a victim), `splat_ray`, `splat_at(point, normal)` (a server's splat, near the camera and rate-limited), `mask` for the layers it may land on, and `follow(settings)` to track the player's `gore` and `fx_quality`.
+
 Images: `alien`, `warning`, `drip`, `beast`, `spider`, `tentacle`, `robot`. Run `examples/decals_selftest.tscn` (headless) and `examples/decals_demo.tscn`.
 
 Art, both CC0:

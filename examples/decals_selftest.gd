@@ -7,8 +7,8 @@ extends Node
 ## godot --headless --path . res://examples/decals_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 6
-const CHECKS := 54
+const SECTIONS := 7
+const CHECKS := 65
 
 var _passed := 0
 var _failed := 0
@@ -23,6 +23,7 @@ func _ready() -> void:
 	_switches()
 	_placed()
 	_config()
+	await _blood_node()
 	print("")
 	print("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
 	if _section_count != SECTIONS or _passed + _failed != CHECKS:
@@ -210,6 +211,47 @@ func _config() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(file))
 	d.queue_free()
 	tint.queue_free()
+
+
+func _blood_node() -> void:
+	_section("DotFxBlood casts to the surface behind a hit and under a victim")
+	var floor_body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(20, 1, 20)
+	shape.shape = box
+	floor_body.add_child(shape)
+	add_child(floor_body)
+	floor_body.global_position = Vector3(0, -0.5, 0)
+	var b := DotFxBlood.new()
+	add_child(b)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	_check(b.splat_below(Vector3.ZERO) != null, "under a victim: the floor is found")
+	_check(b.decals.blood_count() == 1, "and one splatter lives")
+	_check(b.splat_below(Vector3(0, -6, 0)) == null, "no surface in reach, none drawn")
+	_check(b.splat_behind(Vector3(0, 3, 0), Vector3(0, 1.5, 0)) != null, "behind a hit: the surface beyond the point")
+	_check(b.splat_behind(Vector3.ONE, Vector3.ONE) == null, "a zero-length shot draws none")
+	b.mask = 0
+	_check(b.splat_below(Vector3.ZERO) == null, "a mask that excludes the floor draws none")
+	b.mask = 0xFFFFFFFF
+	_check(b.splat_at(Vector3.ZERO, Vector3.UP) == null, "a server splat with no camera draws none")
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.global_position = Vector3(0, 2, 5)
+	var drawn := 0
+	for i in 40:
+		if b.splat_at(Vector3(i * 0.1, 0, 0), Vector3.UP) != null:
+			drawn += 1
+	_check(drawn == DotFxBlood.SPLATS_PER_SECOND, "server splats are limited per second (%d)" % drawn)
+	_check(b.splat_at(Vector3(500, 0, 0), Vector3.UP, 60.0) == null, "and none far from the camera")
+	b.decals.config.gore = false
+	_check(b.splat_below(Vector3.ZERO) == null, "gore off draws none")
+	b.clear()
+	_check(b.decals.blood_count() == 0, "clear empties the pool")
+	b.queue_free()
+	cam.queue_free()
+	floor_body.queue_free()
 
 
 func _section(title: String) -> void:
