@@ -3,6 +3,7 @@
 #
 #   heavy -- tools/screenshot.sh <out.png> [mesh|decal]
 #
+# goo [amount] draws the screen goo overlay over a street (Compatibility renderer).
 # mesh uses the Compatibility renderer (quads); decal uses Forward+ on Mesa's software Vulkan.
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -16,7 +17,12 @@ Xvfb ":$disp" -screen 0 1280x720x24 >/dev/null 2>&1 &
 xpid=$!
 sleep 2
 if [ "$MODE" = decal ]; then R=(--rendering-method forward_plus --rendering-driver vulkan); else R=(--rendering-method gl_compatibility --rendering-driver opengl3); fi
-timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/decals_demo.tscn -- --shot "$OUT" --mode=$MODE
+if [ "$MODE" = goo ]; then
+    R=(--rendering-method gl_compatibility --rendering-driver opengl3)
+    timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/goo_demo.tscn -- --shot "$OUT" --amount="${3:-0.6}"
+else
+    timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/decals_demo.tscn -- --shot "$OUT" --mode=$MODE
+fi
 rc=$?
 kill $xpid 2>/dev/null
 exit $rc

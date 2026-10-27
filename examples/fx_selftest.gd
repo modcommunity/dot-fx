@@ -12,8 +12,8 @@ extends Node
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 11
-const CHECKS := 112
+const SECTIONS := 12
+const CHECKS := 123
 
 var _passed := 0
 var _failed := 0
@@ -40,6 +40,7 @@ func _run() -> void:
 	_test_beacon()
 	_test_weather()
 	_test_beam_and_thruster()
+	_test_screen_goo()
 
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
@@ -512,6 +513,41 @@ func _test_flash_limits() -> void:
 	_check(m.flash(&"hurt_flash"), "a rate of zero means unlimited, for a cutscene")
 
 	m.queue_free()
+
+
+func _test_screen_goo() -> void:
+	_section("screen goo: envelope, stacking, status path")
+	var goo := DotFxScreenGoo.new()
+	add_child(goo)
+	_check(goo.amount() == 0.0, "starts clear")
+	goo.apply(0.5, 4.0, 1.0, 1.0)
+	goo.advance(0.5)
+	_check(is_equal_approx(goo.amount(), 0.25), "rises over fade_in")
+	goo.advance(1.5)
+	_check(is_equal_approx(goo.amount(), 0.5), "holds at its amount")
+	goo.apply(0.4, 4.0, 0.0, 0.0)
+	goo.advance(0.0)
+	_check(is_equal_approx(goo.amount(), 0.9), "two applications stack")
+	goo.apply(0.9, 4.0, 0.0, 0.0)
+	goo.advance(0.0)
+	_check(is_equal_approx(goo.amount(), 1.0), "stacking is capped at max_amount")
+	goo.advance(4.1)
+	_check(is_equal_approx(goo.amount(), 0.0), "all ended after their duration (%.2f)" % goo.amount())
+	_check(goo.applications.is_empty(), "ended applications are dropped")
+	goo.max_amount = 0.6
+	goo.set_status(2, 5.0)
+	goo.advance(1.0)
+	_check(is_equal_approx(goo.amount(), 0.6), "status stacks reach per_stack times stacks, capped")
+	goo.set_status(2, 0.5)
+	goo.advance(1.0)
+	_check(is_equal_approx(goo.amount(), 0.3), "status fades over its last second")
+	goo.set_status(0, 0.0)
+	goo.advance(1.0)
+	_check(goo.amount() == 0.0, "no stacks clears")
+	goo.apply(1.0, 5.0)
+	goo.clear()
+	_check(goo.amount() == 0.0, "clear removes at once")
+	goo.queue_free()
 
 
 # --- Harness ---------------------------------------------------------------
