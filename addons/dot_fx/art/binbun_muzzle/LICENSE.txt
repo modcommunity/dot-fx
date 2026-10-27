@@ -1,0 +1,11 @@
+Muzzle Flash VFX - Godot 3D, by Binbun
+https://binbun3d.itch.io/muzzle-flash-vfx
+Retrieved 2026-10-27.
+
+The download (MuzzleFlashVFX.zip) contains no licence file. The licence is stated on the page, under "Licensing:", quoted exactly:
+
+    "You're free to use this pack for personal, educational and commercial projects with no attribution required (CC0)"
+
+Credit is given anyway in the README. The "ExtraTexturesForSupporters" download is a separate paid file and is not included.
+
+Changes made here (permitted by CC0): the files moved under addons/dot_fx/art/binbun_muzzle/, resource paths rewritten to match, the .ptex texture sources and unused placeholder.png dropped, and the two helper scripts' class_name renamed to DotMuzzleVfxController and DotMuzzleVfxLight so they cannot collide with the author's other packs.

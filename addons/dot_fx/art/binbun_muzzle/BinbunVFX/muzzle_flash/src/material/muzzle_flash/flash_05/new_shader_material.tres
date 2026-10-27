@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3 uid="uid://drv7kcy1ilui7"]
+
+[ext_resource type="Shader" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/glow.gdshader" id="1_7ejx6"]
+
+[sub_resource type="Gradient" id="Gradient_r2qw0"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_pm23q"]
+gradient = SubResource("Gradient_r2qw0")
+fill_from = Vector2(0, 0.5)
+fill_to = Vector2(0, 0)
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_7ejx6")
+shader_parameter/mask_texture = SubResource("GradientTexture2D_pm23q")
+shader_parameter/mask_exponent = 1.5
+shader_parameter/emission_amount = 4.0
+shader_parameter/primary_color = Color(1, 1, 1, 1)
+shader_parameter/secondary_color = Color(1, 0.270588, 0, 1)
+shader_parameter/alpha_mode = 0
+shader_parameter/alpha_multiplier = 0.7591
+shader_parameter/proximity_fade = false
+shader_parameter/proximity_fade_distance = 1.0

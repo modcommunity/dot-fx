@@ -1,0 +1,44 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bckofk27jdjm7"]
+
+[ext_resource type="Shader" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/base.gdshader" id="1_jgohc"]
+[ext_resource type="Texture2D" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/shared/texture/flash_long/flash_long_03.png" id="2_mvgxs"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_cqpxa"]
+noise_type = 2
+fractal_octaves = 3
+cellular_distance_function = 1
+domain_warp_enabled = true
+domain_warp_type = 1
+domain_warp_frequency = 0.005
+domain_warp_fractal_octaves = 2
+domain_warp_fractal_lacunarity = 4.145
+domain_warp_fractal_gain = 1.69
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_fjtqu"]
+noise = SubResource("FastNoiseLite_cqpxa")
+seamless = true
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_jgohc")
+shader_parameter/main_texture = ExtResource("2_mvgxs")
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/alignment = 3
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_fjtqu")
+shader_parameter/noise_scrolling = Vector2(0, 1)
+shader_parameter/noise_strength = 0.5
+shader_parameter/primary_color = Color(0.999435, 0.652523, 0.63317025, 1)
+shader_parameter/secondary_color = Color(0, 0.69690967, 0.6734561, 1)
+shader_parameter/tertiary_color = Color(0.517369, 0.1077713, 0.24523619, 1)
+shader_parameter/offset_distance = 0.0
+shader_parameter/offset_exponent = 1.0
+shader_parameter/emission_strength = 2.0
+shader_parameter/color_smoothness = 0.6
+shader_parameter/edge_smoothness = 0.4
+shader_parameter/fade_basic_amount = 0.121
+shader_parameter/fade_direction_amount = 1.0
+shader_parameter/use_particle_alpha = true
+shader_parameter/proximity_fade = true
+shader_parameter/proximity_fade_distance = 1.0
+shader_parameter/edge_cutoff_distance = 0.02
+shader_parameter/alpha_mode = 0

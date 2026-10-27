@@ -137,6 +137,12 @@ Art, both CC0:
 - Blood splatter by ExileGL, https://opengameart.org/content/blood-splatter (CC0), downscaled to six 256 px frames in `art/blood_splatter.png`.
 - Graffiti Decals 64x by Mumu, https://opengameart.org/content/graffiti-decals-64x (CC0), `art/graffiti.png`.
 
+## Muzzle flashes
+
+`DotMuzzleFlash` is a pooled muzzle flash node: parent it to a weapon's muzzle point (view model or world model) and call `fire()` per shot. Three instances are built on the first shot and reused, so nothing is allocated per shot, and nothing is built at all on a headless server (`DotMuzzleFlash.available()`). `DotMuzzleFlash.size_for(category, extra, suppressed)` picks a size: pistol very small, revolver, SMG and carbine small, rifle, LMG and DMR medium, shotgun and sniper big, suppressed none; a weapon profile overrides it with `extra: {muzzle_flash: big}` (`very_small`, `small`, `medium`, `big`, `none`). Set `first_person = true` on the view model's node: it fades the mesh out within `first_person_fade` metres of the camera so it never fills the view. `DotMuzzleFlashConfig` (`DOT_MUZZLE_*`, `--muzzle-*`) has `quality` (0 off, 1 hard-edged no light, 2 dithered with light, 3 smooth with light), `light_scale`, `max_size`. Run `tools/screenshot.sh shots/m.png muzzle`.
+
+Art, CC0: Muzzle Flash VFX - Godot 3D by Binbun, https://binbun3d.itch.io/muzzle-flash-vfx (CC0), vendored in `art/binbun_muzzle/` with the licence statement in `LICENSE.txt`.
+
 ## Installing
 
 Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)'s `addons/dot_core/` into your project and enable dot-fx in **Project → Project Settings → Plugins**.

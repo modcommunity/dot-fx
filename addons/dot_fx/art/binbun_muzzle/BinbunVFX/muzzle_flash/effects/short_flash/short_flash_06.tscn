@@ -1,0 +1,222 @@
+[gd_scene load_steps=20 format=3 uid="uid://bnyywch8twv3e"]
+
+[ext_resource type="Material" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/src/material/muzzle_flash/flash_06/flash_06_long.tres" id="1_l7hma"]
+[ext_resource type="Script" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/shared/script/vfx_controller.gd" id="1_owxq7"]
+[ext_resource type="Material" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/src/material/muzzle_flash/flash_06/flash_06_front.tres" id="2_owxq7"]
+[ext_resource type="Material" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/src/material/muzzle_flash/flash_06/short_06_glow.tres" id="3_l7hma"]
+[ext_resource type="Script" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/shared/script/vfx_light.gd" id="4_j6rir"]
+
+[sub_resource type="Curve" id="Curve_cd2jq"]
+_data = [Vector2(0, 0.191845), 0.0, 1.35258, 0, 0, Vector2(1, 1), 0.169788, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_8jogn"]
+curve = SubResource("Curve_cd2jq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_44ggx"]
+particle_flag_rotate_y = true
+angle_min = -720.0
+angle_max = 720.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.8
+scale_max = 1.2
+alpha_curve = SubResource("CurveTexture_8jogn")
+
+[sub_resource type="QuadMesh" id="QuadMesh_0i3u0"]
+size = Vector2(1.5, 0.8)
+subdivide_width = 9
+subdivide_depth = 9
+center_offset = Vector3(0, 0.5, 0)
+
+[sub_resource type="Curve" id="Curve_6anb6"]
+_data = [Vector2(0.240924, 0), 0.0, 1.85571, 0, 0, Vector2(1, 1), 0.347757, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_bac6w"]
+curve = SubResource("Curve_6anb6")
+
+[sub_resource type="Curve" id="Curve_aq3a3"]
+_data = [Vector2(0, 1), 0.0, 2.474e-07, 0, 0, Vector2(0.488449, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_sea8j"]
+curve = SubResource("Curve_aq3a3")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sckwh"]
+particle_flag_rotate_y = true
+angle_min = -720.0
+angle_max = 720.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.8
+scale_max = 1.2
+scale_curve = SubResource("CurveTexture_sea8j")
+alpha_curve = SubResource("CurveTexture_bac6w")
+
+[sub_resource type="QuadMesh" id="QuadMesh_owxq7"]
+size = Vector2(0.5, 0.5)
+subdivide_width = 9
+subdivide_depth = 9
+orientation = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_l7hma"]
+radius = 0.1
+height = 0.5
+radial_segments = 9
+rings = 4
+is_hemisphere = true
+
+[sub_resource type="Animation" id="Animation_l7hma"]
+resource_name = "main"
+length = 0.2
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Glow:material_override:shader_parameter/alpha_multiplier")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15),
+"transitions": PackedFloat32Array(2, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Flash_Long:emitting")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Flash_Front:emitting")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Light:light_multiplier")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_owxq7"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Glow:material_override:shader_parameter/alpha_multiplier")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Flash_Long:emitting")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Flash_Front:emitting")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Light:light_multiplier")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_owxq7"]
+_data = {
+&"RESET": SubResource("Animation_owxq7"),
+&"main": SubResource("Animation_l7hma")
+}
+
+[node name="ShortFlash_06" type="Node3D"]
+script = ExtResource("1_owxq7")
+primary_color = Color(1, 1, 1, 1)
+secondary_color = Color(1, 0.784314, 0.564706, 1)
+light_color = Color(1, 1, 1, 1)
+light_energy = 2.0
+mesh_resolutions = 9
+
+[node name="Flash_Long" type="GPUParticles3D" parent="."]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0.05, 0, 0)
+material_override = ExtResource("1_l7hma")
+emitting = false
+amount = 3
+lifetime = 0.2
+one_shot = true
+explosiveness = 0.8
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_44ggx")
+draw_pass_1 = SubResource("QuadMesh_0i3u0")
+
+[node name="Flash_Front" type="GPUParticles3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+material_override = ExtResource("2_owxq7")
+emitting = false
+amount = 1
+lifetime = 0.2
+one_shot = true
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_sckwh")
+draw_pass_1 = SubResource("QuadMesh_owxq7")
+
+[node name="Glow" type="MeshInstance3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0.5, 0, 0)
+material_override = ExtResource("3_l7hma")
+mesh = SubResource("SphereMesh_l7hma")
+
+[node name="Light" type="OmniLight3D" parent="."]
+light_energy = 2.0
+omni_range = 2.0
+script = ExtResource("4_j6rir")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_owxq7")
+}

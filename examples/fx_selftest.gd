@@ -12,8 +12,8 @@ extends Node
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 12
-const CHECKS := 123
+const SECTIONS := 13
+const CHECKS := 131
 
 var _passed := 0
 var _failed := 0
@@ -41,6 +41,7 @@ func _run() -> void:
 	_test_weather()
 	_test_beam_and_thruster()
 	_test_screen_goo()
+	_test_muzzle_flash()
 
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
@@ -788,3 +789,23 @@ func _test_weather() -> void:
 	_check(w.get_child_count() == 0 and w.describe().contains("not drawn"), "no display: nothing was built")
 	_check(not w.apply({"kind": "fog"}).ok and w.definition.kind == &"snow", "a bad document leaves the old weather")
 	w.queue_free()
+
+
+func _test_muzzle_flash() -> void:
+	_section("muzzle flash: sizes, overrides, headless")
+	var S := DotMuzzleFlash.Size
+	_check(DotMuzzleFlash.size_for("pistol") == S.VERY_SMALL, "a pistol is very small")
+	_check(DotMuzzleFlash.size_for("Shotgun") == S.BIG, "a shotgun is big, case ignored")
+	_check(DotMuzzleFlash.size_for("rifle", {"muzzle_flash": "none"}) == S.NONE, "extra can switch it off")
+	_check(DotMuzzleFlash.size_for("pistol", {"muzzle_flash": "big"}) == S.BIG, "extra overrides the category")
+	_check(DotMuzzleFlash.size_for("rifle", {}, true) == S.NONE, "suppressed gives none")
+	_check(DotMuzzleFlash.size_for("harpoon") == S.SMALL, "an unknown category is small")
+	var f := DotMuzzleFlash.new()
+	add_child(f)
+	_check(not f.fire() and f.get_child_count() == 0, "headless: nothing built, fire is skipped")
+	for s in [S.VERY_SMALL, S.SMALL, S.MEDIUM, S.BIG]:
+		for v in range(1, DotMuzzleFlash.VARIANTS + 1):
+			if not ResourceLoader.exists("%s%s%02d.tscn" % [DotMuzzleFlash.ROOT, DotMuzzleFlash.FOLDERS[s], v]):
+				_check(false, "missing flash scene %d/%d" % [s, v])
+	_check(true, "all 24 flash scenes exist")
+	f.queue_free()

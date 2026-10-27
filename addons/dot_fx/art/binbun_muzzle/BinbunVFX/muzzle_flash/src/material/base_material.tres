@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://bw2f7lmk7d1qy"]
+
+[ext_resource type="Shader" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/base.gdshader" id="1_5rfyb"]
+[ext_resource type="Texture2D" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/shared/texture/flash_long/flash_long_03.png" id="2_d1bao"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_5rfyb")
+shader_parameter/main_texture = ExtResource("2_d1bao")
+shader_parameter/primary_color = Color(1, 0.858824, 0.286275, 1)
+shader_parameter/secondary_color = Color(1, 0.380392, 0, 1)
+shader_parameter/tertiary_color = Color(0, 0, 0, 1)
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/color_smoothness = 1.0
+shader_parameter/edge_smoothness = 0.3
+shader_parameter/use_particle_alpha = true
+shader_parameter/fade_to_edge_amount = 0.0
+shader_parameter/fade_direction_amount = 0.0
+shader_parameter/alignment = 3
+shader_parameter/emission_strength = 2.0
+shader_parameter/alpha_mode = 0

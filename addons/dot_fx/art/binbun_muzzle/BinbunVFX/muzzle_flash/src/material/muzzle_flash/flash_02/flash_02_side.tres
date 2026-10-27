@@ -1,0 +1,28 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bmn4oapxflunr"]
+
+[ext_resource type="Shader" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/base.gdshader" id="1_r7pav"]
+[ext_resource type="Texture2D" path="res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/shared/texture/flash_side/flash_side_02.png" id="2_gvxxp"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_r7pav")
+shader_parameter/main_texture = ExtResource("2_gvxxp")
+shader_parameter/texture_scale = Vector2(1, 1)
+shader_parameter/alignment = 3
+shader_parameter/noise_scrolling = Vector2(0, 0)
+shader_parameter/noise_strength = 0.5
+shader_parameter/primary_color = Color(1, 1, 0.545098, 1)
+shader_parameter/secondary_color = Color(1, 0.533333, 0.352941, 1)
+shader_parameter/tertiary_color = Color(0, 0, 0, 1)
+shader_parameter/offset_distance = 0.0
+shader_parameter/offset_exponent = 1.0
+shader_parameter/emission_strength = 2.0
+shader_parameter/color_smoothness = 0.6
+shader_parameter/edge_smoothness = 0.4
+shader_parameter/fade_basic_amount = 0.121
+shader_parameter/fade_direction_amount = 1.0
+shader_parameter/use_particle_alpha = true
+shader_parameter/proximity_fade = false
+shader_parameter/proximity_fade_distance = 1.0
+shader_parameter/edge_cutoff_distance = 0.02
+shader_parameter/alpha_mode = 0
