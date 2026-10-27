@@ -3,12 +3,17 @@ extends Node3D
 ## The four muzzle flash sizes on four dummy guns, caught a moment after firing. Needs a display.
 ##
 ## [codeblock]
-## tools/screenshot.sh /tmp/muzzle.png muzzle [fp]
+## tools/screenshot.sh /tmp/muzzle.png muzzle [--fp] [--near]
 ## [/codeblock]
 
 var _shot := ""
 var _t := 0.0
 var _fired := false
+var _variant := 1
+var _at := 0.06
+var _frames := 0
+var _after := 2
+var _near := false
 var _flashes: Array[DotMuzzleFlash] = []
 
 
@@ -19,6 +24,14 @@ func _ready() -> void:
 	for i in range(args.size()):
 		if args[i] == "--shot" and i + 1 < args.size():
 			_shot = args[i + 1]
+		if args[i] == "--variant" and i + 1 < args.size():
+			_variant = int(args[i + 1])
+		if args[i] == "--frames" and i + 1 < args.size():
+			_after = int(args[i + 1])
+		if args[i] == "--at" and i + 1 < args.size():
+			_at = float(args[i + 1])
+		if args[i] == "--near":
+			_near = true
 		if args[i] == "--fp":
 			fp = true
 	var env := Environment.new()
@@ -37,6 +50,7 @@ func _ready() -> void:
 		var f := DotMuzzleFlash.new()
 		f.size = sizes[i]
 		f.first_person = fp
+		f.variant = _variant
 		f.position = Vector3(0.25, y, 0)
 		add_child(f)
 		_flashes.append(f)
@@ -44,6 +58,11 @@ func _ready() -> void:
 	cam.position = Vector3(1.2, 2.0, 5.2)
 	add_child(cam)
 	cam.look_at(Vector3(1.2, 2.0, 0))
+	if _near:
+		# Flashes 0.3 m from the lens, inside the first-person fade distance.
+		cam.position = Vector3(0.9, 2.5, 0.3)
+		cam.fov = 80.0
+		cam.look_at(Vector3(0.25, 2.5, 0))
 
 
 func _box(pos: Vector3, size: Vector3, colour: Color) -> MeshInstance3D:
@@ -60,11 +79,13 @@ func _box(pos: Vector3, size: Vector3, colour: Color) -> MeshInstance3D:
 
 func _process(d: float) -> void:
 	_t += d
+	if _fired:
+		_frames += 1
 	if not _fired and _t > 0.3:
 		_fired = true
 		_t = 0.0
 		for f in _flashes:
 			f.fire()
-	elif _fired and _shot != "" and _t > 0.06:
+	elif _fired and _shot != "" and (_frames >= _after if _after > 0 else _t > _at):
 		get_viewport().get_texture().get_image().save_png(_shot)
 		get_tree().quit()

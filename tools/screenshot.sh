@@ -3,7 +3,7 @@
 #
 #   heavy -- tools/screenshot.sh <out.png> [mesh|decal]
 #
-# muzzle [fp] draws the four muzzle flash sizes.
+# muzzle [--fp] [--near] [--variant N] [--at seconds] draws the four muzzle flash sizes.
 # goo [amount] draws the screen goo overlay over a street (Compatibility renderer).
 # mesh uses the Compatibility renderer (quads); decal uses Forward+ on Mesa's software Vulkan.
 set -uo pipefail
@@ -23,7 +23,7 @@ if [ "$MODE" = goo ]; then
     timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/goo_demo.tscn -- --shot "$OUT" --amount="${3:-0.6}"
 elif [ "$MODE" = muzzle ]; then
     R=(--rendering-method gl_compatibility --rendering-driver opengl3)
-    timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/muzzle_demo.tscn -- --shot "$OUT" ${3:+--fp}
+    timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/muzzle_demo.tscn -- --shot "$OUT" ${@:3}
 else
     timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/decals_demo.tscn -- --shot "$OUT" --mode=$MODE
 fi

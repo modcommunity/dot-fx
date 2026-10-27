@@ -27,6 +27,9 @@ const NAMES := {"none": Size.NONE, "very_small": Size.VERY_SMALL, "small": Size.
 @export var size: Size = Size.SMALL
 @export var config: DotMuzzleFlashConfig = null
 
+## 1 to 6 picks that variant of the size; 0 picks one from the node path, so neighbouring guns differ.
+@export_range(0, 6) var variant: int = 0
+
 var _pool: Array[Node3D] = []
 var _next := 0
 var _built := false
@@ -66,8 +69,8 @@ func _ensure_built() -> bool:
 	if not available() or config.quality <= 0 or size == Size.NONE:
 		return false
 	var s: int = mini(int(size), config.max_size)
-	var variant := (hash(get_path()) % VARIANTS) + 1
-	var scene := load("%s%s%02d.tscn" % [ROOT, FOLDERS[s], variant]) as PackedScene
+	var pick := variant if variant > 0 else (hash(get_path()) % VARIANTS) + 1
+	var scene := load("%s%s%02d.tscn" % [ROOT, FOLDERS[s], pick]) as PackedScene
 	if scene == null:
 		return false
 	var mode := 2 if config.quality == 1 else (1 if config.quality == 2 else 0)
