@@ -51,18 +51,10 @@ func _emitter(life: float, count: int, from: Color, to: Color, size: float, grow
 	p.color_ramp = ramp
 	p.scale_amount_min = size
 	p.scale_amount_max = size * (1.0 + grow * 3.0)
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.5
-	mesh.height = 1.0
-	mesh.radial_segments = 6
-	mesh.rings = 3
-	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	if glow:
-		material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	mesh.material = material
+	# A soft sprite: the old six-sided sphere read as a hard faceted blob.
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2.ONE
+	mesh.material = DotFxSoftSprite.material(Color.WHITE, glow)
 	p.mesh = mesh
 	add_child(p)
 	return p
