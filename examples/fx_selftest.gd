@@ -12,8 +12,8 @@ extends Node
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 10
-const CHECKS := 105
+const SECTIONS := 11
+const CHECKS := 112
 
 var _passed := 0
 var _failed := 0
@@ -39,6 +39,7 @@ func _run() -> void:
 	_test_placed_before_entering()
 	_test_beacon()
 	_test_weather()
+	_test_beam_and_thruster()
 
 	_line("")
 	_line("%d sections, %d passed, %d failed" % [_section_count, _passed, _failed])
@@ -655,6 +656,32 @@ func _test_beacon() -> void:
 
 
 # --- 10 ---------------------------------------------------------------------
+
+func _test_beam_and_thruster() -> void:
+	_section("A beam is placed between two points, and a thruster clamps and breaks")
+
+	var holder := Node3D.new()
+	add_child(holder)
+	var held := DotFxBeam.hold(holder)
+	held.set_ends(Vector3.ZERO, Vector3(0.0, 0.0, 10.0))
+	_check(held.visible, "a held beam shows between two points")
+	_check(held.global_position.is_equal_approx(Vector3(0.0, 0.0, 5.0)), "centred between them")
+	_check(is_equal_approx(held._mesh.scale.y, 10.0), "and as long as they are apart")
+	held.set_ends(Vector3.ONE, Vector3.ONE)
+	_check(not held.visible, "a zero-length beam hides")
+
+	var shot := DotFxBeam.zap(holder, Vector3.ZERO, Vector3(0.0, 4.0, 0.0))
+	_check(shot != null and shot.get_parent() == holder, "a zap is a child of the parent given")
+
+	var jet := DotFxThruster.new()
+	holder.add_child(jet)
+	jet.throttle = 3.0
+	_check(is_equal_approx(jet.throttle, 1.0), "throttle clamps to 1")
+	jet.broken = true
+	jet.spark()
+	_check(jet.broken, "a thruster can be broken and sparks without error")
+	holder.queue_free()
+
 
 func _test_weather() -> void:
 	_section("Weather is a validated document, falls only in its volumes, and is off without a display")
