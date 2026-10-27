@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 13
-const CHECKS := 131
+const CHECKS := 132
 
 var _passed := 0
 var _failed := 0
@@ -808,4 +808,5 @@ func _test_muzzle_flash() -> void:
 			if not ResourceLoader.exists("%s%s%02d.tscn" % [DotMuzzleFlash.ROOT, DotMuzzleFlash.FOLDERS[s], v]):
 				_check(false, "missing flash scene %d/%d" % [s, v])
 	_check(true, "all 24 flash scenes exist")
+	_check(DotMuzzleFlash.prewarm(f) == null, "headless: prewarm draws nothing")
 	f.queue_free()

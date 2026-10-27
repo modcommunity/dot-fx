@@ -30,6 +30,9 @@ const NAMES := {"none": Size.NONE, "very_small": Size.VERY_SMALL, "small": Size.
 ## 1 to 6 picks that variant of the size; 0 picks one from the node path, so neighbouring guns differ.
 @export_range(0, 6) var variant: int = 0
 
+## Flash scenes already loaded, kept for the process so a first shot never reads one from disk.
+static var _scenes := {}
+
 var _pool: Array[Node3D] = []
 var _next := 0
 var _built := false
@@ -70,7 +73,7 @@ func _ensure_built() -> bool:
 		return false
 	var s: int = mini(int(size), config.max_size)
 	var pick := variant if variant > 0 else (hash(get_path()) % VARIANTS) + 1
-	var scene := load("%s%s%02d.tscn" % [ROOT, FOLDERS[s], pick]) as PackedScene
+	var scene := _scene("%s%s%02d.tscn" % [ROOT, FOLDERS[s], pick])
 	if scene == null:
 		return false
 	var mode := 2 if config.quality == 1 else (1 if config.quality == 2 else 0)
@@ -88,3 +91,41 @@ func _ensure_built() -> bool:
 		add_child(node)
 		_pool.append(node)
 	return true
+
+
+static func _scene(path: String) -> PackedScene:
+	if not _scenes.has(path):
+		_scenes[path] = load(path) as PackedScene
+	return _scenes[path]
+
+
+## Loads and pins flash scenes until [param budget_ms] is spent; true once all 24 are pinned. Call it once a frame under a loading cover rather than paying every load in one frame.
+static func pin_scenes(budget_ms: int) -> bool:
+	var until := Time.get_ticks_msec() + budget_ms
+	for s: int in FOLDERS:
+		for v in range(1, VARIANTS + 1):
+			var path := "%s%s%02d.tscn" % [ROOT, FOLDERS[s], v]
+			if _scenes.has(path):
+				continue
+			if Time.get_ticks_msec() >= until:
+				return false
+			_scene(path)
+	return true
+
+
+## Pins every flash scene (see [method pin_scenes]), then draws one flash of each size once under [param parent] (put it in view, under the loading cover), so the first shot of a match costs no scene load, shader compile or light. Returns the rig; free it a few frames later. Null when flashes cannot draw here.
+static func prewarm(parent: Node3D, config: DotMuzzleFlashConfig = null) -> Node3D:
+	if parent == null or not available():
+		return null
+	var rig := Node3D.new()
+	rig.name = "MuzzleFlashPrewarm"
+	parent.add_child(rig)
+	pin_scenes(1 << 30)
+	for s: int in FOLDERS:
+		var flash := DotMuzzleFlash.new()
+		flash.size = s as Size
+		flash.variant = 1
+		flash.config = config
+		rig.add_child(flash)
+		flash.fire()
+	return rig

@@ -191,6 +191,16 @@ func spawn(id: StringName, at: Transform3D, scale_hint: float = 1.0) -> Node:
 	return node
 
 
+## Spawns each of [param ids] once at [param at] (put it in view, under the loading cover) so the first real one costs no scene load or shader compile. Returns the nodes; they retire by their own lifetime.
+func warm(ids: Array, at: Transform3D) -> Array[Node]:
+	var out: Array[Node] = []
+	for id: Variant in ids:
+		var node := spawn(StringName(id), at)
+		if node != null:
+			out.append(node)
+	return out
+
+
 ## Spawns at a 2D position, on the XZ plane.
 ##
 ## Two entry points rather than one widened signature, which is the choice dot-props and
