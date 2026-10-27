@@ -214,8 +214,10 @@ func setup(def: DotFxWeatherDef) -> void:
 	_material.set_shader_parameter("tint", def.colour)
 	_material.set_shader_parameter("box_size", _box)
 	_material.set_shader_parameter("fall", fall)
-	_material.set_shader_parameter("flake_size", 0.04 if rain else 0.11)
-	_material.set_shader_parameter("streak", 0.9 if rain else 0.0)
+	# A streak is as long as the drop falls in about a tenth of a second and wide enough to
+	# survive a chase camera 8 m away; 0.04 by 0.9 m was a hairline nobody saw in a play test.
+	_material.set_shader_parameter("flake_size", 0.055 if rain else 0.11)
+	_material.set_shader_parameter("streak", 1.6 if rain else 0.0)
 	_material.set_shader_parameter("sway", 0.0 if rain else 0.3)
 	_mmi.custom_aabb = AABB(-_box * 0.5 - Vector3.ONE, _box + Vector3.ONE * 2.0)
 
