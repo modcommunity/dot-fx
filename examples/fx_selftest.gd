@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 13
-const CHECKS := 132
+const CHECKS := 134
 
 var _passed := 0
 var _failed := 0
@@ -809,4 +809,6 @@ func _test_muzzle_flash() -> void:
 				_check(false, "missing flash scene %d/%d" % [s, v])
 	_check(true, "all 24 flash scenes exist")
 	_check(DotMuzzleFlash.prewarm(f) == null, "headless: prewarm draws nothing")
+	_check(f.is_ready(), "headless: a flash that can never draw counts as ready")
+	_check(not f.is_processing(), "headless: it does not tick to build a pool")
 	f.queue_free()

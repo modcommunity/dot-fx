@@ -33,9 +33,14 @@ const NAMES := {"none": Size.NONE, "very_small": Size.VERY_SMALL, "small": Size.
 ## Flash scenes already loaded, kept for the process so a first shot never reads one from disk.
 static var _scenes := {}
 
+## The frame an instance was last built in, by any flash.
+static var _last_build_frame := -1
+
 var _pool: Array[Node3D] = []
 var _next := 0
 var _built := false
+var _scene_ready := false
+var _chosen: PackedScene = null
 
 
 ## The flash size for a weapon: `extra.muzzle_flash` (a size name or "none"), else the category, else small. [param suppressed] gives none.
@@ -63,33 +68,69 @@ func fire() -> bool:
 	return true
 
 
-func _ensure_built() -> bool:
-	if _built:
-		return not _pool.is_empty()
-	_built = true
+## Whether the pool is complete (or can never be), so [method fire] builds nothing.
+func is_ready() -> bool:
+	return _pool.size() >= POOL or (_scene_ready and _chosen == null) or not available() or size == Size.NONE
+
+
+func _ready() -> void:
+	# Build the pool a node a frame once attached, so the first shot finds it done and no frame pays for all of it.
+	if available() and size != Size.NONE:
+		set_process(true)
+	else:
+		set_process(false)
+
+
+func _process(_delta: float) -> void:
+	if _pool.size() >= POOL or not _prepare():
+		set_process(false)
+		return
+	# One instance per frame across all flashes, or eight warming at once would be one big hitch.
+	var frame := Engine.get_process_frames()
+	if frame == _last_build_frame:
+		return
+	_last_build_frame = frame
+	_add_one()
+
+
+## Resolves the config, size and scene once; false when this flash can never draw.
+func _prepare() -> bool:
+	if _scene_ready:
+		return _chosen != null
+	_scene_ready = true
 	if config == null:
 		config = DotMuzzleFlashConfig.new()
 	if not available() or config.quality <= 0 or size == Size.NONE:
 		return false
 	var s: int = mini(int(size), config.max_size)
 	var pick := variant if variant > 0 else (hash(get_path()) % VARIANTS) + 1
-	var scene := _scene("%s%s%02d.tscn" % [ROOT, FOLDERS[s], pick])
-	if scene == null:
-		return false
+	_chosen = _scene("%s%s%02d.tscn" % [ROOT, FOLDERS[s], pick])
+	return _chosen != null
+
+
+func _add_one() -> void:
 	var mode := 2 if config.quality == 1 else (1 if config.quality == 2 else 0)
-	for i in POOL:
-		var node := scene.instantiate()
-		node.set("autoplay", false)
-		node.set("one_shot", true)
-		node.set("alpha_mode", mode)
-		var fade := first_person and config.first_person_fade > 0.0
-		node.set("proximity_fade", fade)
-		if fade:
-			node.set("proximity_fade_distance", config.first_person_fade)
-		node.set("light_enable", config.quality >= 2 and config.light_scale > 0.0)
-		node.set("light_energy", float(node.get("light_energy")) * config.light_scale)
-		add_child(node)
-		_pool.append(node)
+	var node := _chosen.instantiate()
+	node.set("autoplay", false)
+	node.set("one_shot", true)
+	node.set("alpha_mode", mode)
+	var fade := first_person and config.first_person_fade > 0.0
+	node.set("proximity_fade", fade)
+	if fade:
+		node.set("proximity_fade_distance", config.first_person_fade)
+	node.set("light_enable", config.quality >= 2 and config.light_scale > 0.0)
+	node.set("light_energy", float(node.get("light_energy")) * config.light_scale)
+	add_child(node)
+	_pool.append(node)
+	_built = _pool.size() >= POOL
+
+
+## Finishes the pool at once (a shot before the frames did); false when nothing can draw.
+func _ensure_built() -> bool:
+	if not _prepare():
+		return false
+	while _pool.size() < POOL:
+		_add_one()
 	return true
 
 
