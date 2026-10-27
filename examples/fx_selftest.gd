@@ -13,7 +13,7 @@ extends Node
 ## [/codeblock]
 
 const SECTIONS := 13
-const CHECKS := 134
+const CHECKS := 136
 
 var _passed := 0
 var _failed := 0
@@ -788,6 +788,10 @@ func _test_weather() -> void:
 	_check(events == [[&"wind", true], [&"wind", false]], "the sound hook fires on entering and leaving a volume")
 	_check(w.get_child_count() == 0 and w.describe().contains("not drawn"), "no display: nothing was built")
 	_check(not w.apply({"kind": "fog"}).ok and w.definition.kind == &"snow", "a bad document leaves the old weather")
+	w.set_gust(Vector3(3, 5, -2))
+	_check(w.gust() == Vector3(3, 0, -2), "a gust leans the fall sideways only, never up or down")
+	w.set_gust(Vector3.ZERO)
+	_check(w.gust() == Vector3.ZERO, "and zero removes it")
 	w.queue_free()
 
 

@@ -70,6 +70,8 @@ var _material: ShaderMaterial = null
 var _render: bool = false
 var _dirty: bool = true
 var _clock: float = 0.0
+var _gust := Vector3.ZERO
+var _drift := Vector3.ZERO
 var _flakes: int = 0
 var _active: int = 0
 var _box := Vector3(28, 18, 28)
@@ -84,6 +86,8 @@ uniform float clock = 0.0;
 uniform vec3 cam = vec3(0.0);
 uniform vec3 box_size = vec3(28.0, 18.0, 28.0);
 uniform vec3 fall = vec3(0.0, -1.6, 0.0);
+uniform vec3 gust = vec3(0.0);
+uniform vec3 drift = vec3(0.0);
 uniform float flake_size = 0.07;
 uniform float streak = 0.0;
 uniform float sway = 0.0;
@@ -99,7 +103,7 @@ void vertex() {
 	float id = float(INSTANCE_ID);
 	vec3 seed = vec3(h(id + 1.0), h(id + 2.0), h(id + 3.0));
 	vec3 vel = fall * (0.85 + 0.3 * h(id + 4.0));
-	vec3 local = mod(seed * box_size + vel * clock - cam + box_size * 0.5, box_size);
+	vec3 local = mod(seed * box_size + vel * clock + drift - cam + box_size * 0.5, box_size);
 	vec3 w = cam - box_size * 0.5 + local;
 	w.x += sin(clock * 1.3 + id) * sway;
 	w.z += cos(clock * 1.1 + id * 1.7) * sway;
@@ -122,7 +126,7 @@ void vertex() {
 
 	vec3 c = (VIEW_MATRIX * vec4(w, 1.0)).xyz;
 	if (streak > 0.0) {
-		vec3 dir = normalize((VIEW_MATRIX * vec4(normalize(fall), 0.0)).xyz);
+		vec3 dir = normalize((VIEW_MATRIX * vec4(normalize(fall + gust), 0.0)).xyz);
 		vec3 side = normalize(cross(dir, normalize(c)));
 		c += side * VERTEX.x * flake_size + dir * VERTEX.y * streak;
 	} else {
@@ -222,6 +226,18 @@ func setup(def: DotFxWeatherDef) -> void:
 	_mmi.custom_aabb = AABB(-_box * 0.5 - Vector3.ONE, _box + Vector3.ONE * 2.0)
 
 
+## Leans the fall by [param wind] (metres per second, horizontal) on top of the document's steady wind, so gusts reach the drawing. Zero removes it.
+func set_gust(wind: Vector3) -> void:
+	_gust = Vector3(wind.x, 0.0, wind.z)
+	if _material != null:
+		_material.set_shader_parameter("gust", _gust)
+
+
+## The gust lean set by [method set_gust].
+func gust() -> Vector3:
+	return _gust
+
+
 ## Once a frame, with where the camera is. Moves nothing but the clock and the follow.
 func advance(delta: float, viewer: Vector3) -> void:
 	if definition == null:
@@ -235,6 +251,10 @@ func advance(delta: float, viewer: Vector3) -> void:
 		_mmi.visible = false
 		return
 	_clock = fmod(_clock + delta, 600.0)
+	if _gust != Vector3.ZERO or _drift != Vector3.ZERO:
+		# Integrated, not multiplied by the clock: a changing gust must not teleport every flake.
+		_drift = Vector3(fposmod(_drift.x + _gust.x * delta, _box.x), 0.0, fposmod(_drift.z + _gust.z * delta, _box.z))
+		_material.set_shader_parameter("drift", _drift)
 	if viewer != _last_viewer:
 		_last_viewer = viewer
 		var region := AABB(viewer - _box * 0.5, _box)
