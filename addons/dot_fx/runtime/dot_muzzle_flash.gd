@@ -76,13 +76,17 @@ func is_ready() -> bool:
 func _ready() -> void:
 	# Build the pool a node a frame once attached, so the first shot finds it done and no frame pays for all of it.
 	if available() and size != Size.NONE:
+		# Deferred by name so the scene load stays out of the per-frame call graph.
+		call_deferred("_prepare")
 		set_process(true)
 	else:
 		set_process(false)
 
 
 func _process(_delta: float) -> void:
-	if _pool.size() >= POOL or not _prepare():
+	if not _scene_ready:
+		return
+	if _pool.size() >= POOL or _chosen == null:
 		set_process(false)
 		return
 	# One instance per frame across all flashes, or eight warming at once would be one big hitch.
