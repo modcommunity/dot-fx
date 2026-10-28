@@ -1,10 +1,7 @@
 extends Node3D
 
 ## A street corner under the screen goo at three amounts, side by side. Needs a display.
-##
-## [codeblock]
-## tools/screenshot.sh /tmp/goo.png goo
-## [/codeblock]
+## Shot with tools/screenshot.sh /tmp/goo.png goo.
 
 var _shot := ""
 var _frames := 0

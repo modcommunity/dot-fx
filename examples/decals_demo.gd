@@ -1,11 +1,7 @@
 extends Node3D
 
 ## A floor and a wall with blood splattered on both and graffiti on the wall. Needs a display.
-##
-## [codeblock]
-## godot --path . res://examples/decals_demo.tscn
-## tools/screenshot.sh /tmp/decals.png [mesh|decal]
-## [/codeblock]
+## Shot with tools/screenshot.sh /tmp/decals.png [mesh|decal].
 
 var _shot := ""
 var _frames := 0

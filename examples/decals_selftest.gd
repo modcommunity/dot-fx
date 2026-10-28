@@ -1,11 +1,7 @@
 extends Node
 
-## Headless checks for [DotFxDecals]: counts, the pool cap, fade, the gore and quality switches,
-## placed documents and config layering. Looks are checked with decals_demo.tscn.
-##
-## [codeblock]
-## godot --headless --path . res://examples/decals_selftest.tscn
-## [/codeblock]
+## Headless checks for [DotFxDecals]: counts, pool cap, fade, switches, placed documents, config layering.
+## Looks are checked with decals_demo.tscn.
 
 const SECTIONS := 7
 const CHECKS := 65

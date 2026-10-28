@@ -1,23 +1,9 @@
 class_name DotFxDecals
 extends Node3D
 
-## Blood splatters spawned from a hit, and static wall decals placed from data.
-##
-## Blood is pooled: the cap is [method DotFxDecalConfig.effective_blood_cap], and at the cap
-## the oldest splatter's node is reused for the new one, so nothing is allocated past it.
-## Each fades after [member DotFxDecalConfig.blood_hold]. Time is explicit: call [method advance].
-## Decal nodes where the renderer has them, textured quads just off the surface where it does
-## not (Compatibility, and so the browser). Purely visual: it never touches the simulation, so
-## a server can skip it, and a client may drop any of it.
-##
-## [codeblock]
-## var decals := DotFxDecals.new()
-## add_child(decals)
-## decals.apply_config(cfg)                                   # a DotFxDecalConfig
-## decals.splatter(hit_position, hit_normal)                  # null when gore is off
-## decals.place({"image": "alien", "position": [1, 2, 3], "normal": [0, 0, 1], "width": 1.5})
-## decals.advance(delta)                                      # once a frame
-## [/codeblock]
+## Pooled blood splatters from hits plus static wall decals placed from data; purely visual.
+## At [method DotFxDecalConfig.effective_blood_cap] the oldest node is reused. Time is explicit: call [method advance] each frame.
+## Decal nodes where the renderer has them, quads just off the surface otherwise (Compatibility, browser).
 
 const CHANNEL := "fx.decals"
 
@@ -101,11 +87,7 @@ func splatter(position: Vector3, normal: Vector3, size_scale: float = 1.0, frame
 
 
 ## Validates and places one static decal from a document, a [DotResult] holding its node.
-##
-## [codeblock]
-## {"image": "alien", "position": [x, y, z], "normal": [0, 0, 1],
-##  "width": 1.0, "roll": 0.0, "colour": "#ffffff", "opacity": 1.0, "id": "wall_a"}
-## [/codeblock]
+## Keys: image, position, normal, width, roll, colour, opacity, id.
 ## Unknown keys are refused so a misspelt "normal" cannot read as the default and paint the floor.
 func place(doc: Dictionary) -> DotResult:
 	var res := _parse(doc)

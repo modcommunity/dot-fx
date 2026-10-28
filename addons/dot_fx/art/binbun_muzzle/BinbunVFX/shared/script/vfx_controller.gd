@@ -107,14 +107,8 @@ enum Alpha_Mode {
 	set(value):
 		dither_cutoff = value
 		_set_shader_params("dither_cutoff", dither_cutoff)
-## Specify resolution of meshes. 
-## [br][br]
-## [b]SphereMesh:[/b] Sets [code]radial_segments[/code] to the [b]value[/b] and
-## [code]rings[/code] to [b]half the value[/b] 
-## [br][br]
-## [b]CylinderMesh:[/b] Sets [code]radial_segments[/code] to the [b]value[/b]
-## [br][br]
-## [b]PlaneMesh:[/b] Sets [code]subdivide_width[/code] and [code]subdivide_depth[/code] to the [b]value[/b]
+## Specify resolution of meshes: SphereMesh radial_segments = value (rings = half),
+## CylinderMesh radial_segments = value, PlaneMesh subdivide_width and subdivide_depth = value.
 @export var mesh_resolutions : int = 32:
 	set(value):
 		mesh_resolutions = value

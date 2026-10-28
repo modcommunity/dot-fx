@@ -1,10 +1,7 @@
 extends Node3D
 
 ## The four muzzle flash sizes on four dummy guns, caught a moment after firing. Needs a display.
-##
-## [codeblock]
-## tools/screenshot.sh /tmp/muzzle.png muzzle [--fp] [--near]
-## [/codeblock]
+## Shot with tools/screenshot.sh /tmp/muzzle.png muzzle [--fp] [--near].
 
 var _shot := ""
 var _t := 0.0

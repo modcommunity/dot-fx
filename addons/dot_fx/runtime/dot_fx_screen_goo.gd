@@ -2,12 +2,8 @@ class_name DotFxScreenGoo
 extends CanvasLayer
 
 ## A full-screen goo, ink or oil overlay that blinds the viewer more as its amount rises.
-##
-## A server applies it to one survivor through a stacking status (dot-effects'
-## `DotEffectDef.screen_impair`); the client mirror feeds the stack count and time left to
-## [method set_status], or a game calls [method apply] directly. One procedural canvas shader,
-## no textures and no screen read, so it costs the same on a phone and in a browser. It only
-## draws; nothing in the simulation depends on it.
+## Fed by [method set_status] (a stacking status's count and time left) or [method apply] directly.
+## One procedural canvas shader, no textures or screen read, so it is cheap on phones and browsers; it only draws.
 
 const SHADER_CODE := """
 shader_type canvas_item;

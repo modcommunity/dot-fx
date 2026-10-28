@@ -1,10 +1,6 @@
 extends Node
 
-## Headless checks for [DotFxRenderQuality]: the platform picks, snapping, and what lands on a viewport.
-##
-## [codeblock]
-## godot --headless --path . res://examples/render_selftest.tscn
-## [/codeblock]
+## Headless checks for [DotFxRenderQuality]: platform picks, snapping, and what lands on a viewport.
 
 const SECTIONS := 3
 const CHECKS := 17
