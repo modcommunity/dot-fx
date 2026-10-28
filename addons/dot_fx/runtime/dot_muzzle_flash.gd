@@ -1,7 +1,7 @@
 class_name DotMuzzleFlash
 extends Node3D
 
-## A pooled muzzle flash from Binbun's CC0 pack. Parent it to a weapon's muzzle point (view model or world model) and call [method fire] per shot; it builds its instances once and never allocates after.
+## A pooled muzzle flash from Binbun's CC0 pack. Parent it to a weapon's muzzle point (view model or world model, facing -Z) and call [method fire] per shot; it builds its instances once and never allocates after.
 
 enum Size { NONE, VERY_SMALL, SMALL, MEDIUM, BIG }
 
@@ -110,7 +110,9 @@ func _prepare() -> bool:
 
 func _add_one() -> void:
 	var mode := 2 if config.quality == 1 else (1 if config.quality == 2 else 0)
-	var node := _chosen.instantiate()
+	var node := _chosen.instantiate() as Node3D
+	# The art is authored pointing along +X; a muzzle point faces -Z, so turn it to follow the barrel.
+	node.rotation.y = PI * 0.5
 	node.set("autoplay", false)
 	node.set("one_shot", true)
 	node.set("alpha_mode", mode)

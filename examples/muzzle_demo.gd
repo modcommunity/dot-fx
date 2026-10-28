@@ -14,6 +14,8 @@ var _at := 0.06
 var _frames := 0
 var _after := 2
 var _near := false
+## Guns point down -Z as a weapon's muzzle does, flashes unrotated, seen from the side.
+var _fwd := false
 var _flashes: Array[DotMuzzleFlash] = []
 
 
@@ -32,6 +34,8 @@ func _ready() -> void:
 			_at = float(args[i + 1])
 		if args[i] == "--near":
 			_near = true
+		if args[i] == "--fwd":
+			_fwd = true
 		if args[i] == "--fp":
 			fp = true
 	var env := Environment.new()
@@ -52,12 +56,20 @@ func _ready() -> void:
 		f.first_person = fp
 		f.variant = _variant
 		f.position = Vector3(0.25, y, 0)
+		f.rotation.y = -PI * 0.5  # a flash faces -Z; this one fires along +X
+		if _fwd:
+			f.rotation = Vector3.ZERO
+			f.position = Vector3(1.2 + 0.0, y, -0.4)
+			add_child(_box(Vector3(1.2, y, 0.3), Vector3(0.25, 0.25, 1.4), Color(0.2, 0.2, 0.22)))
 		add_child(f)
 		_flashes.append(f)
 	var cam := Camera3D.new()
 	cam.position = Vector3(1.2, 2.0, 5.2)
 	add_child(cam)
 	cam.look_at(Vector3(1.2, 2.0, 0))
+	if _fwd:
+		cam.position = Vector3(4.0, 2.0, -0.4)
+		cam.look_at(Vector3(1.2, 2.0, -0.4))
 	if _near:
 		# Flashes 0.3 m from the lens, inside the first-person fade distance.
 		cam.position = Vector3(0.9, 2.5, 0.3)
