@@ -1,4 +1,2 @@
 # size
 # Baselines only shrink: scripts/<gate> --update lowers or drops entries and refuses to add.
-examples/fx_selftest.gd::_test_budget_and_culling	106
-examples/fx_selftest.gd::_test_shake	87

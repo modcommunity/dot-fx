@@ -11,7 +11,5 @@ addons/dot_fx/runtime/dot_fx_manager.gd::banner	4
 addons/dot_fx/runtime/dot_fx_manager.gd::history	3
 addons/dot_fx/runtime/dot_fx_manager.gd::long_block	9
 addons/dot_fx/runtime/dot_fx_weather.gd::long_block	1
-examples/fx_selftest.gd::banner	11
-examples/fx_selftest.gd::history	1
-examples/fx_selftest.gd::long_block	2
+examples/fx_selftest.gd::long_block	1
 examples/weather_demo.gd::long_block	1
