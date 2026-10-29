@@ -45,11 +45,8 @@ func _test_catalogue() -> void:
 	dupe.add(_def(&"twice")).add(_def(&"twice"))
 	_check(not dupe.validate().ok, "a duplicate id is refused")
 
-	# `missing_scenes` is a different question from `validate`, and had no caller. A
-	# catalogue whose documents are all well formed and whose scenes are all absent is
-	# exactly what a server validating content it does not have looks like -- and exactly
-	# what a client with a broken export looks like. Only one of those is a bug, which is
-	# why they are two calls.
+	# `missing_scenes` is a different question from `validate`: a server without the content and
+	# a client with a broken export both look like well-formed documents with absent scenes.
 	_check(c.missing_scenes().is_empty(), "a catalogue whose scenes are all here is missing none")
 
 	var absent := DotFxCatalogue.new()
@@ -248,7 +245,7 @@ func _test_decal_ring() -> void:
 	m.advance(0.016)
 	_check(m.decal_count() == 1, "or at the next frame, with no decal spawned")
 
-	# Decals at the instance cap used to refuse every spawn: recycling skipped decals.
+	# Decals at the instance cap recycle the oldest decal instead of refusing the spawn.
 	m.clear()
 	m.config.max_decals = 3
 	m.config.max_instances = 3
