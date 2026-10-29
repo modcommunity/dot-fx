@@ -240,3 +240,30 @@ func _test_muzzle_flash() -> void:
 	_check(f.is_ready(), "headless: a flash that can never draw counts as ready")
 	_check(not f.is_processing(), "headless: it does not tick to build a pool")
 	f.queue_free()
+
+
+func _test_muzzle_flash_lifetime() -> void:
+	_section("muzzle flash: short lifetime, reset on every shot")
+	DotMuzzleFlash.force_available = true
+	var f := DotMuzzleFlash.new()
+	f.size = DotMuzzleFlash.Size.SMALL
+	add_child(f)
+	_check(f.fire(), "a forced-available flash fires")
+	_check(f.is_showing(), "it shows right after the shot")
+	await get_tree().create_timer(0.1).timeout
+	_check(not f.is_showing(), "100 ms later it is hidden")
+	f.fire()
+	f.fire()
+	f.fire()
+	var shown := 0
+	for n in f.get_children():
+		if n is Node3D and (n as Node3D).visible:
+			shown += 1
+	_check(shown == 1, "three quick shots leave one flash, not a stack (%d)" % shown)
+	f.stop()
+	_check(not f.is_showing(), "stop hides it at once")
+	f.fire()
+	remove_child(f)
+	_check(not f.is_showing(), "leaving the tree hides it")
+	f.free()
+	DotMuzzleFlash.force_available = false

@@ -13,6 +13,9 @@ extends DotConfig
 ## Fade a first-person flash out within this many metres of the camera, so a mesh never fills the view.
 @export_range(0.0, 3.0, 0.05) var first_person_fade: float = 0.6
 
+## Seconds a flash shows, however long the art runs: a muzzle flash is a frame or three, and the art's own 0.2 s read as stuck on automatic fire.
+@export_range(0.02, 0.2, 0.005) var lifetime: float = 0.05
+
 ## Largest flash allowed: 1 very small, 2 small, 3 medium, 4 big.
 @export_range(1, 4, 1) var max_size: int = 4
 

@@ -20,6 +20,8 @@ const CATEGORY_SIZE := {
 	"rifle": Size.MEDIUM, "ar": Size.MEDIUM, "carbine": Size.SMALL, "lmg": Size.MEDIUM,
 	"shotgun": Size.BIG, "sniper": Size.BIG, "dmr": Size.MEDIUM, "magnum": Size.MEDIUM,
 }
+## How long the art's own animation runs; the flash is sped up to fit [member DotMuzzleFlashConfig.lifetime].
+const ART_SECONDS := 0.2
 const NAMES := {"none": Size.NONE, "very_small": Size.VERY_SMALL, "small": Size.SMALL, "medium": Size.MEDIUM, "big": Size.BIG}
 
 ## Shown at the muzzle of the first-person view model: fades near the camera.
@@ -36,7 +38,12 @@ static var _scenes := {}
 ## The frame an instance was last built in, by any flash.
 static var _last_build_frame := -1
 
+## Lets a headless suite build and time flashes, which a server never does.
+static var force_available := false
+
 var _pool: Array[Node3D] = []
+## Per pool node, the tick (msec) it must be hidden by; 0 when hidden.
+var _until: Array[int] = []
 var _next := 0
 var _built := false
 var _scene_ready := false
@@ -55,17 +62,37 @@ static func size_for(category: String, extra: Dictionary = {}, suppressed: bool 
 
 ## Whether flashes can draw here at all: not a headless server.
 static func available() -> bool:
-	return not DotPlatform.is_headless()
+	return force_available or not DotPlatform.is_headless()
 
 
 ## Play one flash. Returns false when it was skipped (off, headless, size none).
 func fire() -> bool:
 	if not _ensure_built():
 		return false
+	# One flash at a time: a held trigger restarts it rather than stacking a tail of old ones.
+	stop()
 	var node := _pool[_next]
+	_until[_next] = Time.get_ticks_msec() + maxi(1, roundi(config.lifetime * 1000.0))
 	_next = (_next + 1) % _pool.size()
+	node.visible = true
 	node.call("play")
+	set_process(true)
 	return true
+
+
+## Hides every flash at once: a weapon switch, death, a reparent.
+func stop() -> void:
+	for i in _pool.size():
+		_pool[i].visible = false
+		_until[i] = 0
+
+
+## Whether any flash is still showing, for a suite.
+func is_showing() -> bool:
+	for node in _pool:
+		if node.visible:
+			return true
+	return false
 
 
 ## Whether the pool is complete (or can never be), so [method fire] builds nothing.
@@ -83,11 +110,25 @@ func _ready() -> void:
 		set_process(false)
 
 
+func _exit_tree() -> void:
+	stop()
+
+
 func _process(_delta: float) -> void:
 	if not _scene_ready:
 		return
+	var now := Time.get_ticks_msec()
+	var showing := false
+	for i in _pool.size():
+		if _until[i] == 0:
+			continue
+		if now >= _until[i]:
+			_pool[i].visible = false
+			_until[i] = 0
+		else:
+			showing = true
 	if _pool.size() >= POOL or _chosen == null:
-		set_process(false)
+		set_process(showing)
 		return
 	# One instance per frame across all flashes, or eight warming at once would be one big hitch.
 	var frame := Engine.get_process_frames()
@@ -126,8 +167,12 @@ func _add_one() -> void:
 		node.set("proximity_fade_distance", config.first_person_fade)
 	node.set("light_enable", config.quality >= 2 and config.light_scale > 0.0)
 	node.set("light_energy", float(node.get("light_energy")) * config.light_scale)
+	node.visible = false
 	add_child(node)
+	# The art runs 0.2 s; the sped copy lasts the config's lifetime, particles and light with it.
+	node.set("speed_scale", ART_SECONDS / maxf(config.lifetime, 0.01))
 	_pool.append(node)
+	_until.append(0)
 	_built = _pool.size() >= POOL
 
 
