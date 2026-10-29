@@ -21,6 +21,8 @@ if [ "$MODE" = decal ]; then R=(--rendering-method forward_plus --rendering-driv
 if [ "$MODE" = goo ]; then
     R=(--rendering-method gl_compatibility --rendering-driver opengl3)
     timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/goo_demo.tscn -- --shot "$OUT" --amount="${3:-0.6}"
+elif [ "$MODE" = surface ]; then
+    timeout 120 godot --path . --resolution 1280x720 --rendering-method forward_plus --rendering-driver vulkan res://examples/surface_demo.tscn -- --shot "$OUT"
 elif [ "$MODE" = muzzle ]; then
     R=(--rendering-method gl_compatibility --rendering-driver opengl3)
     timeout 120 godot --path . --resolution 1280x720 "${R[@]}" res://examples/muzzle_demo.tscn -- --shot "$OUT" ${@:3}

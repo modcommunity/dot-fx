@@ -267,3 +267,95 @@ func _test_muzzle_flash_lifetime() -> void:
 	_check(not f.is_showing(), "leaving the tree hides it")
 	f.free()
 	DotMuzzleFlash.force_available = false
+
+
+func _solid(body: PhysicsBody3D, size: Vector3, at: Vector3) -> void:
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	body.position = at
+	add_child(body)
+
+
+func _decal_from_above(m: DotFxManager, x: float, y: float) -> Node:
+	return m.spawn_decal(&"bullet_hole", Transform3D(Basis.looking_at(Vector3.DOWN, Vector3.RIGHT), Vector3(x, y, 0)))
+
+
+func _test_decal_surfaces() -> void:
+	_section("decals sit on a surface: never in air, never on a character, and follow a prop")
+	var floor_body := StaticBody3D.new()
+	_solid(floor_body, Vector3(40, 1, 40), Vector3(0, -0.5, 0))
+	var crate := RigidBody3D.new()
+	crate.freeze = true
+	_solid(crate, Vector3(1, 1, 1), Vector3(5, 0.5, 0))
+	var person := CharacterBody3D.new()
+	_solid(person, Vector3(0.6, 1.8, 0.6), Vector3(-5, 0.9, 0))
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var cfg := DotFxConfig.new()
+	cfg.quality = 3
+	cfg.frame_budget = 0
+	var m := _manager(cfg)
+	var why: Array[StringName] = []
+	m.spawned.connect(func(_id: StringName, _n: Node, r: StringName) -> void: why.append(r))
+
+	var near_floor := 0
+	var worst := 0.0
+	for height: float in [0.0, 0.1, 0.2, 0.25]:
+		var node := _decal_from_above(m, 0.0, height) as Node3D
+		if node != null:
+			near_floor += 1
+			worst = maxf(worst, absf(node.global_position.y))
+	_check(near_floor == 4 and worst < 0.001, "within reach of the floor: kept and snapped onto it (worst %.4f m off)" % worst)
+
+	var floating := 0
+	for height: float in [0.4, 0.6, 1.0, 5.0, 100.0]:
+		if _decal_from_above(m, 0.0, height) != null:
+			floating += 1
+	_check(floating == 0, "in the air (a miss's endpoint, a body that moved): none kept (%d)" % floating)
+	_check(why.count(&"no_surface") == 5, "and each refusal says no_surface")
+	_check(m.decal_count() == 4, "so the ring holds only the four on the floor")
+
+	_check(_decal_from_above(m, -5.0, 1.8) == null, "on a character's body: refused, it would walk away")
+
+	var on_crate := _decal_from_above(m, 5.0, 1.0) as Node3D
+	_check(on_crate != null and on_crate.get_parent() == crate, "on a rigid prop: kept, and parented to it")
+	crate.global_position = Vector3(5, 3.5, 0)
+	_check(absf(on_crate.global_position.y - 4.0) < 0.001, "the prop moves 3 m up and the decal goes with it (y %.3f)" % on_crate.global_position.y)
+	crate.free()
+	m.advance(0.016)
+	_check(not is_instance_valid(on_crate) and m.decal_count() == 4, "the prop is freed: its decal goes too, and leaves the ring")
+
+	var oblique := m.spawn_decal(&"bullet_hole", Transform3D(
+		Basis.looking_at(Vector3(1, -1, 0).normalized(), Vector3.UP), Vector3(2, 0.1, 0))) as Node3D
+	var down := -oblique.global_transform.basis.z
+	_check(oblique != null and down.dot(Vector3.DOWN) > 0.999, "an oblique shot is turned flat onto the surface it hit")
+
+	m.queue_free()
+	floor_body.queue_free()
+	person.queue_free()
+
+
+func _test_muzzle_flash_follows() -> void:
+	_section("muzzle flash follows its weapon and does not outlive its shot")
+	DotMuzzleFlash.force_available = true
+	var muzzle := Node3D.new()
+	add_child(muzzle)
+	var f := DotMuzzleFlash.new()
+	f.size = DotMuzzleFlash.Size.SMALL
+	muzzle.add_child(f)
+	f.fire()
+	var shown: Node3D = null
+	for n in f.get_children():
+		if n is Node3D and (n as Node3D).visible:
+			shown = n
+	_check(shown != null, "a flash is showing")
+	muzzle.global_position = Vector3(7, 2, -3)
+	_check(shown != null and shown.global_position.distance_to(Vector3(7, 2, -3)) < 0.01, "the weapon moves and the flash is still on its muzzle")
+	await get_tree().create_timer(0.15).timeout
+	_check(not f.is_showing(), "and 150 ms after the shot nothing of it is left")
+	muzzle.queue_free()
+	DotMuzzleFlash.force_available = false

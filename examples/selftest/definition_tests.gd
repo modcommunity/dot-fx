@@ -230,6 +230,7 @@ func _test_decal_ring() -> void:
 	cfg.frame_budget = 0
 	cfg.max_decals = 4
 	var m := _manager(cfg)
+	m.decal_surface_mask = 0
 
 	for _i in range(10):
 		m.spawn_decal(&"bullet_hole", Transform3D.IDENTITY)

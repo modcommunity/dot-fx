@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="Gradient" id="ramp"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.1, 0.1, 0.1, 0.9, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="tex"]
+gradient = SubResource("ramp")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="Hole" type="Node3D"]
+
+[node name="Decal" type="Decal" parent="."]
+rotation = Vector3(1.5707964, 0, 0)
+size = Vector3(0.3, 0.4, 0.3)
+texture_albedo = SubResource("tex")

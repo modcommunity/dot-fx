@@ -49,6 +49,12 @@ signal flashed(id: StringName, colour: Color, peak: float, applied: bool)
 
 @export var register_as_service: bool = true
 
+## Layers [method spawn_decal] looks for a surface on; 0 skips the check and trusts the caller.
+@export_flags_3d_physics var decal_surface_mask: int = 0xFFFFFFFF
+
+## How far either side of the requested point a decal may be moved onto a surface.
+@export var decal_reach: float = 0.3
+
 ## Where the camera is, for culling. A game sets this once a frame.
 var viewer_position: Vector3 = Vector3.ZERO
 
@@ -133,7 +139,7 @@ func advance(delta: float) -> void:
 	var now := Time.get_ticks_msec()
 	for i in range(_live.size() - 1, -1, -1):
 		var entry := _live[i]
-		if now >= int(entry["expires"]):
+		if now >= int(entry["expires"]) or not is_instance_valid(entry["node"]):
 			_retire(i)
 
 	# A lowered cap applies from the next frame, not only at the next decal.
@@ -214,9 +220,42 @@ func spawn_2d(id: StringName, at: Vector2, rotation: float = 0.0) -> Node:
 	return spawn(id, t)
 
 
-## Spawns a decal, which is a spawn with a ring behind it.
+## Spawns a decal, which is a spawn with a ring behind it. Along the transform's -Z a surface must lie within [member decal_reach]: the decal is snapped onto it, follows it when it is a prop or a platform, and is refused as [code]&"no_surface"[/code] for open air (a miss's endpoint) or a character (it walks away).
 func spawn_decal(id: StringName, at: Transform3D) -> Node:
-	return spawn(id, at)
+	if decal_surface_mask == 0:
+		return spawn(id, at)
+	var hit := _decal_surface(at)
+	if hit.is_empty():
+		spawned.emit(id, null, &"no_surface")
+		return null
+	var fitted := Transform3D(Basis.looking_at(-hit["normal"], _any_up(hit["normal"])), hit["position"])
+	var node := spawn(id, fitted)
+	var body := hit["collider"] as Node3D
+	if node != null and (body is RigidBody3D or body is AnimatableBody3D):
+		node.reparent(body, true)
+	return node
+
+
+## The first surface a decal may sit on, or empty. Characters and ragdoll bones never qualify.
+func _decal_surface(at: Transform3D) -> Dictionary:
+	var world := get_viewport().world_3d if get_viewport() != null else null
+	if world == null or not at.origin.is_finite():
+		return {}
+	var forward := -at.basis.z.normalized()
+	var query := PhysicsRayQueryParameters3D.create(
+		at.origin - forward * decal_reach, at.origin + forward * decal_reach, decal_surface_mask)
+	query.collide_with_areas = false
+	var found := world.direct_space_state.intersect_ray(query)
+	if found.is_empty():
+		return {}
+	var body: Object = found["collider"]
+	if body is CharacterBody3D or body is PhysicalBone3D:
+		return {}
+	return found
+
+
+static func _any_up(normal: Vector3) -> Vector3:
+	return Vector3.RIGHT if absf(normal.dot(Vector3.UP)) > 0.99 else Vector3.UP
 
 
 ## Adds this effect's shake, scaled by how far away it was.
@@ -341,9 +380,9 @@ func _retire(index: int) -> void:
 	var id: StringName = entry["id"]
 	_concurrent[id] = maxi(0, int(_concurrent.get(id, 1)) - 1)
 	_decals.erase(entry)
-	var node: Node = entry["node"]
-	if node != null and is_instance_valid(node):
-		node.queue_free()
+	var node: Variant = entry["node"]
+	if is_instance_valid(node):
+		(node as Node).queue_free()
 
 
 ## The oldest effect that is not a decal, else the oldest decal. Decals used to be skipped
