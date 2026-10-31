@@ -237,6 +237,22 @@ func spawn_penetration_decals(penetrations: Array, id: StringName = &"bullet_hol
 	return placed
 
 
+## A bullet mark at each bounce point in [param ricochets] (dot-combat's `DotShot.ricochets`). Returns how many were placed; none when [member DotFxConfig.penetration_decals] is off.
+func spawn_ricochet_decals(ricochets: Array, id: StringName = &"bullet_hole") -> int:
+	if config == null or not config.penetration_decals:
+		return 0
+	var placed := 0
+	for r in ricochets:
+		var normal: Vector3 = r.get("normal", Vector3.ZERO)
+		if normal.length_squared() < 0.25 or not r.has("point"):
+			continue
+		normal = normal.normalized()
+		var at := Transform3D(Basis.looking_at(-normal, _any_up(normal)), (r["point"] as Vector3) + normal * 0.05)
+		if spawn_decal(id, at) != null:
+			placed += 1
+	return placed
+
+
 ## Spawns a decal, which is a spawn with a ring behind it. Along the transform's -Z a surface must lie within [member decal_reach]: the decal is snapped onto it, follows it when it is a prop or a platform, and is refused as [code]&"no_surface"[/code] for open air (a miss's endpoint) or a character (it walks away).
 func spawn_decal(id: StringName, at: Transform3D) -> Node:
 	if decal_surface_mask == 0:

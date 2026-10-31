@@ -444,4 +444,10 @@ func _test_penetration_decals() -> void:
 	m.clear()
 	m.config.penetration_decals = false
 	_check(m.spawn_penetration_decals(holes) == 0 and m.decal_count() == 0, "and none when penetration_decals is off")
+	m.config.penetration_decals = true
+	var bounce := [{"point": Vector3(0, 1, 0), "normal": Vector3.UP}]
+	_check(m.spawn_ricochet_decals(bounce) == 1 and m.decal_count() == 1, "a ricochet leaves a mark at the bounce point")
+	m.config.penetration_decals = false
+	m.clear()
+	_check(m.spawn_ricochet_decals(bounce) == 0, "and none when penetration_decals is off")
 	m.queue_free()

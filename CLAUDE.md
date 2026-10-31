@@ -21,7 +21,7 @@ Read the family [CLAUDE.md](../../CLAUDE.md) first.
 | `core/dot_fx_catalogue.gd` | `DotFxCatalogue`: all of them; `validate()` needs no renderer and no files, `missing_scenes()` |
 | `core/dot_fx_shake.gd` | `DotFxShake`: trauma in, displacement out; touches no camera |
 | `core/dot_fx_config.gd` | `DotFxConfig`: quality, budgets, `shake_scale`, `allow_flashes`, `flash_cap`, `flashes_per_second` (a `DotConfig`) |
-| `runtime/dot_fx_manager.gd` | `DotFxManager`: ids in, effects out, or a refusal with a reason; `advance`, `spawn`, `spawn_decal`, `spawn_penetration_decals` (a hole on both faces of each wall in `shot.penetrations`; `DotFxConfig.penetration_decals`), `shake_at`, `flash` |
+| `runtime/dot_fx_manager.gd` | `DotFxManager`: ids in, effects out, or a refusal with a reason; `advance`, `spawn`, `spawn_decal`, `spawn_ricochet_decals`, `spawn_penetration_decals` (a hole on both faces of each wall in `shot.penetrations`; `DotFxConfig.penetration_decals`), `shake_at`, `flash` |
 | `runtime/dot_fx_beacon.gd` | `DotFxBeacon`: ring, ripple, through-wall column and ping marking where somebody is |
 | `core/dot_fx_weather_def.gd` | `DotFxWeatherDef`: the weather document (`parse()` returns a `DotResult`) |
 | `runtime/dot_fx_weather.gd` | `DotFxWeather`: snow or rain in volumes around the camera, one shader-placed MultiMesh |
