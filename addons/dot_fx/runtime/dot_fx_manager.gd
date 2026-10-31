@@ -220,6 +220,23 @@ func spawn_2d(id: StringName, at: Vector2, rotation: float = 0.0) -> Node:
 	return spawn(id, t)
 
 
+## A decal on the entry face and one on the exit face of every wall in [param penetrations] (the entries of dot-combat's `DotShot.penetrations`). Returns how many were placed; none when [member DotFxConfig.penetration_decals] is off.
+func spawn_penetration_decals(penetrations: Array, id: StringName = &"bullet_hole") -> int:
+	if config == null or not config.penetration_decals:
+		return 0
+	var placed := 0
+	for p in penetrations:
+		for side in [["entry", "entry_normal"], ["exit", "exit_normal"]]:
+			var normal: Vector3 = p.get(side[1], Vector3.ZERO)
+			if normal.length_squared() < 0.25 or not p.has(side[0]):
+				continue
+			normal = normal.normalized()
+			var at := Transform3D(Basis.looking_at(-normal, _any_up(normal)), (p[side[0]] as Vector3) + normal * 0.05)
+			if spawn_decal(id, at) != null:
+				placed += 1
+	return placed
+
+
 ## Spawns a decal, which is a spawn with a ring behind it. Along the transform's -Z a surface must lie within [member decal_reach]: the decal is snapped onto it, follows it when it is a prop or a platform, and is refused as [code]&"no_surface"[/code] for open air (a miss's endpoint) or a character (it walks away).
 func spawn_decal(id: StringName, at: Transform3D) -> Node:
 	if decal_surface_mask == 0:

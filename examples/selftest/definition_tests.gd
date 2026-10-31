@@ -430,3 +430,18 @@ func _test_screen_goo() -> void:
 	goo.queue_free()
 
 
+
+
+func _test_penetration_decals() -> void:
+	_section("A wallbang leaves a hole on both faces of the wall")
+	var cfg := DotFxConfig.new()
+	cfg.quality = 3
+	cfg.frame_budget = 0
+	var m := _manager(cfg)
+	m.decal_surface_mask = 0
+	var holes := [{"entry": Vector3(0, 1, 0), "entry_normal": Vector3.BACK, "exit": Vector3(0, 1, -0.4), "exit_normal": Vector3.FORWARD}]
+	_check(m.spawn_penetration_decals(holes) == 2 and m.decal_count() == 2, "a hole on the entry face and one on the exit face")
+	m.clear()
+	m.config.penetration_decals = false
+	_check(m.spawn_penetration_decals(holes) == 0 and m.decal_count() == 0, "and none when penetration_decals is off")
+	m.queue_free()

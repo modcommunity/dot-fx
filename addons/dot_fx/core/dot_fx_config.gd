@@ -35,6 +35,9 @@ extends DotConfig
 ## testing and fatal at minute forty.
 @export_range(0, 4096, 1) var max_decals: int = 256
 
+## Whether a shot that passed through a wall leaves a hole on both faces (see [method DotFxManager.spawn_penetration_decals]).
+@export var penetration_decals: bool = true
+
 ## How many spawned effects may exist at once, across every id.
 @export_range(1, 4096, 1) var max_instances: int = 256
 
