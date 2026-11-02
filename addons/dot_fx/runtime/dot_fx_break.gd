@@ -145,11 +145,11 @@ func _particles(root: Node3D, kind: StringName, count: int, up: Vector3, width: 
 	root.add_child(p)
 	p.emitting = true
 	var life := p.lifetime
-	# Stone and wood raise a puff; a soft sprite so it reads without a texture of its own.
+	# A dim, low-alpha puff: unshaded sprites stack to white if bright, and hide the pieces.
 	if kind == &"wood" or kind == &"stone":
 		var dust := CPUParticles3D.new()
 		dust.name = "Dust"
-		dust.amount = maxi(count / 3, 2)
+		dust.amount = maxi(count / 4, 2)
 		dust.one_shot = true
 		dust.explosiveness = 1.0
 		dust.local_coords = false
@@ -159,12 +159,12 @@ func _particles(root: Node3D, kind: StringName, count: int, up: Vector3, width: 
 		dust.initial_velocity_max = 1.2
 		dust.gravity = Vector3(0.0, 0.2, 0.0)
 		dust.lifetime = 0.9
-		dust.scale_amount_min = 0.5 * width
-		dust.scale_amount_max = 1.0 * width
+		dust.scale_amount_min = 0.3 * width
+		dust.scale_amount_max = 0.6 * width
 		dust.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var ramp := Gradient.new()
-		ramp.set_color(0, Color(0.7, 0.62, 0.5, 0.45) if kind == &"wood" else Color(0.62, 0.62, 0.6, 0.45))
-		ramp.set_color(1, Color(0.7, 0.65, 0.55, 0.0))
+		ramp.set_color(0, Color(0.3, 0.24, 0.17, 0.2) if kind == &"wood" else Color(0.28, 0.28, 0.26, 0.2))
+		ramp.set_color(1, Color(0.22, 0.19, 0.15, 0.0))
 		dust.color_ramp = ramp
 		var quad := QuadMesh.new()
 		quad.size = Vector2.ONE
@@ -193,7 +193,7 @@ func _mesh(kind: StringName) -> Mesh:
 		&"wood":
 			mat.albedo_color = Color(0.62, 0.43, 0.24)
 			var splinter := BoxMesh.new()
-			splinter.size = Vector3(0.025, 0.025, 0.2)
+			splinter.size = Vector3(0.035, 0.035, 0.26)
 			mesh = splinter
 		&"metal":
 			mat.albedo_color = Color(1.0, 0.82, 0.4)
