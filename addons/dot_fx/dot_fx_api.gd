@@ -14,5 +14,6 @@ extends RefCounted
 # 6: DotFxDecals, DotFxDecalConfig and DotFxDecalSheet: pooled blood splatters and data-placed static decals.
 # 7: DotFxBlood, splatter behind a hit or under a victim (rays, settings, server splat rate limit).
 # 8: DotFxRenderConfig and DotFxRenderQuality: anisotropy, anti-aliasing, mip bias and sharpness on a viewport.
-const LEVEL := 8
+# 9: DotFxBreak and DotFxBreakConfig: break particles and a sound keyed by material.
+const LEVEL := 9
 const OLDEST := 1

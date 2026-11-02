@@ -151,6 +151,12 @@ Copy `addons/dot_fx/` and [`dot-core`](https://github.com/modcommunity/dot-core)
 
 [dot-core](https://github.com/modcommunity/dot-core). Nothing else.
 
+## Break effects
+
+`DotFxBreak` makes the splinters, shards, sparks or chunks and the crack sound of something breaking, keyed by material: `glass`, `wood`, `metal`, `stone`, `plastic` (map-material names such as `GLASS` or `WOOD_CRATE` alias onto them). A game adds one node and connects whatever breaks: `dot-props` `DotPropDamage.broken`, a `DotMapGlass` pane's `broken`, or a `DotMapBreakable` effect hook, to `burst(material, at, normal, size)`. It returns the effect, or null with `last_refusal` set when it was switched off, headless or over its cap. CPU particles only, so it runs in the browser. `DotFxBreakConfig` (`DOT_FX_BREAK_*`, `--break-*`) has `enabled`, `scale` (0 to 4), `max_particles`, `max_live`, `light_scale` (applied on mobile and web), `sounds`, `volume_db`. `follow(settings)` tracks the `fx_quality` key. Run `tools/screenshot.sh shots/b.png break`.
+
+Sounds, CC0: Impact Sounds 1.0 by Kenney, https://kenney.nl/assets/impact-sounds (CC0), cut into `art/break_sounds/` (see `CREDITS.md` there).
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
