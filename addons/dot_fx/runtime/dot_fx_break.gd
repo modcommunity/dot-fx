@@ -1,11 +1,8 @@
 class_name DotFxBreak
 extends Node
 
-## Splinters, shards, sparks or chunks, and a crack, where a prop breaks, keyed by its material. A game
-## adds one node and calls [method burst] from whatever its break signal is (DotMapGlass.broken,
-## DotPropDamage.broken, a map breakable's effect hook); nothing here touches the simulation.
-## CPUParticles3D everywhere: bursts are a few dozen one-shot particles, which a browser build draws
-## and a GPU particle system would cost a shader compile for.
+## Splinters, shards, sparks or chunks, and a crack, where a prop breaks, keyed by its material. A game adds one node and calls [method burst] from its break signal; nothing here touches the simulation.
+## CPUParticles3D everywhere: bursts are a few dozen one-shot particles, and GPU particles would cost a browser a shader compile.
 
 const CHANNEL := "fx.break"
 const MATERIALS: PackedStringArray = ["glass", "wood", "metal", "stone", "plastic"]
