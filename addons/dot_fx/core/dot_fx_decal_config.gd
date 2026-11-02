@@ -35,6 +35,9 @@ enum Mode { AUTO, DECAL, MESH }
 @export_range(0.05, 10.0, 0.05) var blood_size_min: float = 0.8
 @export_range(0.05, 10.0, 0.05) var blood_size_max: float = 1.6
 
+## Mix the Splat Pack shapes into random splatters, so repeated hits look less alike.
+@export var extra_blood: bool = true
+
 ## Html colour multiplied into the blood; a game with green blood sets it here.
 @export var blood_colour: String = "#ffffff"
 

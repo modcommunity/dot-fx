@@ -4,7 +4,7 @@ extends Node
 ## Looks are checked with decals_demo.tscn.
 
 const SECTIONS := 7
-const CHECKS := 65
+const CHECKS := 74
 
 var _passed := 0
 var _failed := 0
@@ -51,6 +51,19 @@ func _art() -> void:
 		all = all and t != null and t.get_width() == DotFxDecalSheet.GRAFFITI[n].size.x
 	_check(all, "each graffiti texture has its rectangle's width")
 	_check(DotFxDecalSheet.graffiti(&"nope") == null, "an unknown name is null")
+	var splats := DotFxDecalSheet.splat_frames()
+	_check(splats.size() == DotFxDecalSheet.SPLAT_FRAMES and splats[0].get_width() == 128, "splat pack: 16 frames of 128")
+	var gibs := true
+	for i in range(DotFxDecalSheet.GIB_COUNT):
+		var g := DotFxDecalSheet.gib(i)
+		gibs = gibs and g != null and g.get_width() > 0 and g.get_width() <= DotFxDecalSheet.GIB_CELL
+	_check(gibs, "all 21 gib sprites load, cropped to their pixels")
+	_check(DotFxDecalSheet.gib(21) == null and DotFxDecalSheet.decal_image(&"gib_3") != null, "gib_N names resolve, out of range is null")
+	_check(DotFxDecalSheet.decal_image(&"gib_x") == null, "a malformed gib name is null")
+	var credits := FileAccess.get_file_as_string("res://addons/dot_fx/art/CREDITS.md")
+	_check(credits.contains("splat_pack.png") and credits.contains("gibs.png"), "CREDITS.md names every vendored sheet")
+	for f in ["blood_splatter.png", "graffiti.png", "splat_pack.png", "gibs.png"]:
+		_check(FileAccess.file_exists("res://addons/dot_fx/art/" + f), "art file present: " + f)
 
 
 func _blood() -> void:

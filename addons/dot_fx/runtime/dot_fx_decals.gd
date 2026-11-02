@@ -60,7 +60,7 @@ func uses_decal_nodes() -> bool:
 
 
 ## Spawns one blood splatter at a hit. [param size_scale] multiplies the random width; [param frame]
-## picks the texture (negative is random). Returns the node, or null when gore or quality is off.
+## picks the texture (negative is random; frames past the sixth are the extra splats). Returns the node, or null when gore or quality is off.
 func splatter(position: Vector3, normal: Vector3, size_scale: float = 1.0, frame: int = -1) -> Node3D:
 	var cap := config.effective_blood_cap()
 	if not config.gore or cap <= 0:
@@ -69,6 +69,8 @@ func splatter(position: Vector3, normal: Vector3, size_scale: float = 1.0, frame
 	if frames.is_empty():
 		DotLog.warn(CHANNEL, "blood art missing")
 		return null
+	if config.extra_blood:
+		frames = frames + DotFxDecalSheet.splat_frames()
 	_trim()
 	var node: Node3D
 	if _blood.size() >= cap:
@@ -271,7 +273,7 @@ func _parse(doc: Dictionary) -> DotResult:
 	for k in doc:
 		if not _KEYS.has(String(k)):
 			return DotResult.fail(DotError.CODE_INVALID, "unknown decal key", str(k))
-	var tex := DotFxDecalSheet.graffiti(StringName(str(doc.get("image", ""))))
+	var tex := DotFxDecalSheet.decal_image(StringName(str(doc.get("image", ""))))
 	if tex == null:
 		return DotResult.fail(DotError.CODE_INVALID, "unknown decal image", str(doc.get("image", "")))
 	var pos = _vec3(doc.get("position"))

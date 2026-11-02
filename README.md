@@ -130,12 +130,14 @@ decals.advance(delta)                                     # once a frame
 
 `DotFxBlood` wraps a `DotFxDecals` with what every game that draws blood repeats: `splat_behind(from, to)` (the surface behind a hit), `splat_below(feet)` (the floor under a victim), `splat_ray`, `splat_at(point, normal)` (a server's splat, near the camera and rate-limited), `mask` for the layers it may land on, and `follow(settings)` to track the player's `gore` and `fx_quality`.
 
-Images: `alien`, `warning`, `drip`, `beast`, `spider`, `tentacle`, `robot`. Run `examples/decals_selftest.tscn` (headless) and `examples/decals_demo.tscn`.
+Images: `gib_0` to `gib_20` (pixel-art meat chunks), `alien`, `warning`, `drip`, `beast`, `spider`, `tentacle`, `robot`. Run `examples/decals_selftest.tscn` (headless) and `examples/decals_demo.tscn`.
 
 Art, both CC0:
 
 - Blood splatter by ExileGL, https://opengameart.org/content/blood-splatter (CC0), downscaled to six 256 px frames in `art/blood_splatter.png`.
 - Graffiti Decals 64x by Mumu, https://opengameart.org/content/graffiti-decals-64x (CC0), `art/graffiti.png`.
+- Splat Pack by Kenney, https://opengameart.org/content/splat-pack (CC0), 16 splats in `art/splat_pack.png`; `DotFxDecals.splatter` mixes them with the six blood frames unless `extra_blood` is off.
+- Gore Blood Gibs by Reactorcore, https://opengameart.org/content/gore-blood-gibs-meat-chunks (CC0), 21 sprites in `art/gibs.png`, placeable as `gib_N` decal images. Full list: `art/CREDITS.md`.
 
 ## Muzzle flashes
 
