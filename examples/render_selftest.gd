@@ -56,7 +56,8 @@ func _viewport() -> void:
 	_check(is_equal_approx(vp.texture_mipmap_bias, -0.5), "mip bias")
 	c.aa = DotFxRenderConfig.Aa.TAA_FXAA
 	q.apply()
-	_check(vp.use_taa and vp.screen_space_aa == Viewport.SCREEN_SPACE_AA_FXAA and vp.msaa_3d == Viewport.MSAA_DISABLED, "taa+fxaa clears msaa")
+	var ssaa_ok := not DotFxRenderQuality._has_screen_space_aa() or (vp.use_taa and vp.screen_space_aa == Viewport.SCREEN_SPACE_AA_FXAA)
+	_check(ssaa_ok and vp.msaa_3d == Viewport.MSAA_DISABLED, "taa+fxaa clears msaa (screen-space parts only where the renderer has them)")
 	c.render_scale = 0.7
 	q.apply()
 	_check(vp.scaling_3d_mode == (Viewport.SCALING_3D_MODE_FSR if DotFxRenderQuality._has_fsr() else Viewport.SCALING_3D_MODE_BILINEAR), "scale under 1 uses FSR where the renderer has it")
