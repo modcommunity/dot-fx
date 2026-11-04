@@ -67,8 +67,10 @@ func apply() -> void:
 	vp.anisotropic_filtering_level = _aniso_enum(_cfg.effective_anisotropy())
 	vp.texture_mipmap_bias = _cfg.mip_bias
 	vp.msaa_3d = msaa
-	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if fxaa else Viewport.SCREEN_SPACE_AA_DISABLED
-	vp.use_taa = taa
+	# Compatibility has no screen-space AA or TAA, and the engine warns on every write there.
+	if _has_screen_space_aa():
+		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if fxaa else Viewport.SCREEN_SPACE_AA_DISABLED
+		vp.use_taa = taa
 	vp.scaling_3d_scale = _cfg.render_scale
 	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if _cfg.render_scale < 0.999 and _has_fsr() else Viewport.SCALING_3D_MODE_BILINEAR
 	vp.fsr_sharpness = _cfg.sharpness
@@ -79,6 +81,11 @@ func apply() -> void:
 ## FSR needs the Forward+ renderer; Mobile and Compatibility keep bilinear.
 static func _has_fsr() -> bool:
 	return RenderingServer.get_current_rendering_method() == "forward_plus"
+
+
+## FXAA and TAA need the Forward+ or Mobile renderer.
+static func _has_screen_space_aa() -> bool:
+	return RenderingServer.get_current_rendering_method() != "gl_compatibility"
 
 
 static func _aniso_enum(taps: int) -> int:
