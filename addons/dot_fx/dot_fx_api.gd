@@ -15,5 +15,6 @@ extends RefCounted
 # 7: DotFxBlood, splatter behind a hit or under a victim (rays, settings, server splat rate limit).
 # 8: DotFxRenderConfig and DotFxRenderQuality: anisotropy, anti-aliasing, mip bias and sharpness on a viewport.
 # 9: DotFxBreak and DotFxBreakConfig: break particles and a sound keyed by material.
-const LEVEL := 9
+# 10: DotFxPoolConfig, DotFxLightBudget, DotFxLightPool and DotFxMeshPool: pooled impact nodes and a dynamic-light cap.
+const LEVEL := 10
 const OLDEST := 1

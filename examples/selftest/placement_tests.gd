@@ -359,3 +359,53 @@ func _test_muzzle_flash_follows() -> void:
 	_check(not f.is_showing(), "and 150 ms after the shot nothing of it is left")
 	muzzle.queue_free()
 	DotMuzzleFlash.force_available = false
+
+
+func _test_light_cap_and_pools() -> void:
+	_section("light cap and node pools")
+	var cfg := DotFxPoolConfig.new()
+	cfg.max_lights = -1
+	var cap := cfg.effective_max_lights()
+	var expect := 2 if DotPlatform.is_web() else (3 if DotPlatform.is_mobile() else 8)
+	_check(cap == expect, "default cap follows the platform (%d)" % cap)
+	cfg.max_lights = 5
+	_check(cfg.effective_max_lights() == 5, "an explicit cap wins")
+
+	DotFxLightBudget.config.max_lights = 2
+	DotFxLightBudget.reset()
+	var pool := DotFxLightPool.new()
+	add_child(pool)
+	pool.prewarm(3, 0)
+	_check(pool.built() == 3 and pool.idle() == 3, "prewarm builds three idle lights")
+	var a := pool.flash(Vector3.ZERO, Color.WHITE, 2.0, 4.0, 0.1)
+	var b := pool.flash(Vector3.ONE, Color.WHITE, 2.0, 4.0, 0.1)
+	var c := pool.flash(Vector3.ONE, Color.WHITE, 2.0, 4.0, 0.1)
+	_check(a != null and b != null and c == null, "the third light is refused at a cap of two")
+	_check(pool.built() == 3 and DotFxLightBudget.live() == 2, "no node was built beyond the prewarm")
+	await get_tree().create_timer(0.2).timeout
+	_check(pool.idle() == 3 and not a.visible, "lights return to the pool when done")
+	var d := pool.flash(Vector3.ZERO, Color.RED, 1.0, 3.0, 0.1)
+	_check(d == a or d == b or pool.built() == 3, "a later flash reuses a pooled light")
+	_check(pool.built() == 3, "still three lights built")
+
+	DotFxLightBudget.config.max_lights = 0
+	DotFxLightBudget.reset()
+	_check(pool.flash(Vector3.ZERO, Color.WHITE, 1.0, 3.0, 0.1) == null, "a cap of zero lights nothing")
+	DotFxLightBudget.config.max_lights = -1
+	DotFxLightBudget.reset()
+	pool.queue_free()
+
+	var meshes := DotFxMeshPool.new()
+	add_child(meshes)
+	var quad := QuadMesh.new()
+	await meshes.prewarm(quad, null, 2, 0)
+	_check(meshes.built() == 2 and meshes.idle() == 2, "mesh prewarm builds two idle instances")
+	var m1 := meshes.acquire(quad, Transform3D.IDENTITY)
+	var m2 := meshes.acquire(quad, Transform3D.IDENTITY)
+	_check(meshes.built() == 2 and m1 != m2 and m1.visible, "acquire reuses the prewarmed pair")
+	meshes.release(m1)
+	meshes.release(m1)
+	_check(meshes.idle() == 1 and not m1.visible, "release hides and pools once, even when called twice")
+	var m3 := meshes.acquire(quad, Transform3D.IDENTITY)
+	_check(m3 == m1 and meshes.built() == 2, "the released instance is the one reused")
+	meshes.queue_free()

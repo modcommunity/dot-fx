@@ -74,6 +74,8 @@ func fire() -> bool:
 	var node := _pool[_next]
 	_until[_next] = Time.get_ticks_msec() + maxi(1, roundi(config.lifetime * 1000.0))
 	_next = (_next + 1) % _pool.size()
+	# Over the shared light cap the flash still draws, unlit.
+	node.set("light_enable", config.quality >= 2 and config.light_scale > 0.0 and DotFxLightBudget.try_take(config.lifetime))
 	node.visible = true
 	node.call("play")
 	set_process(true)
