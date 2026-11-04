@@ -1,4 +1,7 @@
 extends Node
+
+const SECTIONS := 1
+const CHECKS := 8
 ## DotFxSoftSprite: the particle sprite is a smooth disc, filtered linearly.
 
 
@@ -23,5 +26,8 @@ func _ready() -> void:
 		if not c[0]:
 			failed += 1
 		print("%s %s" % ["ok  " if c[0] else "FAIL", c[1]])
-	print("%d checks, %d failed" % [checks.size(), failed])
+	print("%d sections, %d passed, %d failed" % [1, checks.size() - failed, failed])
+	if checks.size() != CHECKS:
+		print("ERROR: %d sections and %d checks ran, %d and %d expected" % [1, checks.size(), SECTIONS, CHECKS])
+		failed += 1
 	get_tree().quit(1 if failed > 0 else 0)
