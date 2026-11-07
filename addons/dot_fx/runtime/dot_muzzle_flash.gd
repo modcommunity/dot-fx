@@ -29,6 +29,9 @@ const NAMES := {"none": Size.NONE, "very_small": Size.VERY_SMALL, "small": Size.
 @export var size: Size = Size.SMALL
 @export var config: DotMuzzleFlashConfig = null
 
+## False gives this flash no light on any tier and takes nothing from the shared light cap, for a game that lights its own shots.
+@export var light: bool = true
+
 ## 1 to 6 picks that variant of the size; 0 picks one from the node path, so neighbouring guns differ.
 @export_range(0, 6) var variant: int = 0
 
@@ -75,7 +78,7 @@ func fire() -> bool:
 	_until[_next] = Time.get_ticks_msec() + maxi(1, roundi(config.lifetime * 1000.0))
 	_next = (_next + 1) % _pool.size()
 	# Over the shared light cap the flash still draws, unlit.
-	node.set("light_enable", config.quality >= 2 and config.light_scale > 0.0 and DotFxLightBudget.try_take(config.lifetime))
+	node.set("light_enable", light and config.quality >= 2 and config.light_scale > 0.0 and DotFxLightBudget.try_take(config.lifetime))
 	node.visible = true
 	node.call("play")
 	set_process(true)
@@ -167,8 +170,9 @@ func _add_one() -> void:
 	node.set("proximity_fade", fade)
 	if fade:
 		node.set("proximity_fade_distance", config.first_person_fade)
-	node.set("light_enable", config.quality >= 2 and config.light_scale > 0.0)
-	node.set("light_energy", float(node.get("light_energy")) * config.light_scale)
+	node.set("light_enable", light and config.quality >= 2 and config.light_scale > 0.0)
+	node.set("light_energy"
+, float(node.get("light_energy")) * config.light_scale)
 	node.visible = false
 	add_child(node)
 	# The art runs 0.2 s; the sped copy lasts the config's lifetime, particles and light with it.
