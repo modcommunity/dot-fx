@@ -260,12 +260,31 @@ func _test_muzzle_flash_lifetime() -> void:
 		if n is Node3D and (n as Node3D).visible:
 			shown += 1
 	_check(shown == 1, "three quick shots leave one flash, not a stack (%d)" % shown)
+	var lit := false
+	for n in f.get_children():
+		if n is Node3D and (n as Node3D).visible:
+			lit = bool(n.get("light_enable"))
+	_check(lit, "by default the shot carries a light")
 	f.stop()
 	_check(not f.is_showing(), "stop hides it at once")
 	f.fire()
 	remove_child(f)
 	_check(not f.is_showing(), "leaving the tree hides it")
 	f.free()
+
+	var dark := DotMuzzleFlash.new()
+	dark.size = DotMuzzleFlash.Size.SMALL
+	dark.light = false
+	add_child(dark)
+	var before := DotFxLightBudget.live()
+	dark.fire()
+	var dark_lit := false
+	for n in dark.get_children():
+		dark_lit = dark_lit or bool(n.get("light_enable"))
+	_check(not dark_lit, "light = false: no instance carries a light")
+	_check(DotFxLightBudget.live() == before, "and it takes nothing from the light cap")
+	dark.free()
+
 	DotMuzzleFlash.force_available = false
 
 
