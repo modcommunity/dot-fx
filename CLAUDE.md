@@ -42,7 +42,7 @@ Paths except `examples/` and `fixtures/` are in `addons/dot_fx/`.
 
 ## Running and testing
 
-The family's two steps ([game-dev/CLAUDE.md](../../CLAUDE.md#validating-anything)), then `timeout 120 godot --headless --path . res://examples/fx_selftest.tscn`. The suite cannot see whether anything looks right: after changing anything that draws, render a frame and look at it.
+The family's two steps ([family CLAUDE.md](../../CLAUDE.md#validating-anything)), then `timeout 120 godot --headless --path . res://examples/fx_selftest.tscn`. The suite cannot see whether anything looks right: after changing anything that draws, render a frame and look at it.
 
 ## Rules that bite
 
