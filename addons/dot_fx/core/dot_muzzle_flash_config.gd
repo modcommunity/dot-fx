@@ -26,3 +26,12 @@ func env_prefix() -> String:
 
 func cli_prefix() -> String:
 	return "--muzzle-"
+
+## Instances kept per flash that is not on the first-person gun (a bot's or another player's). One is enough: a shot restarts the flash, and 32 bots at 3 each was 96 particle nodes. The first-person gun keeps 3.
+@export_range(1, 3, 1) var world_pool: int = 1
+
+## A flash on someone else's gun is not drawn when the camera is farther than this many metres; 0 never culls.
+@export_range(0.0, 500.0, 1.0) var max_distance: float = 120.0
+
+## A flash on someone else's gun carries no light when the camera is farther than this many metres (it still draws); 0 never drops the light.
+@export_range(0.0, 200.0, 1.0) var light_distance: float = 30.0

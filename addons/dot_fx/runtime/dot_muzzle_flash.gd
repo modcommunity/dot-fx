@@ -48,6 +48,8 @@ var _pool: Array[Node3D] = []
 ## Per pool node, the tick (msec) it must be hidden by; 0 when hidden.
 var _until: Array[int] = []
 var _next := 0
+## Shots skipped for distance, for a suite.
+var culled := 0
 var _built := false
 var _scene_ready := false
 var _chosen: PackedScene = null
@@ -72,17 +74,36 @@ static func available() -> bool:
 func fire() -> bool:
 	if not _ensure_built():
 		return false
+	var far := _camera_distance()
+	# A flash on someone else's gun past the cull distance draws nothing at all.
+	if not first_person and config.max_distance > 0.0 and far > config.max_distance:
+		culled += 1
+		return false
 	# One flash at a time: a held trigger restarts it rather than stacking a tail of old ones.
 	stop()
 	var node := _pool[_next]
 	_until[_next] = Time.get_ticks_msec() + maxi(1, roundi(config.lifetime * 1000.0))
 	_next = (_next + 1) % _pool.size()
 	# Over the shared light cap the flash still draws, unlit.
-	node.set("light_enable", light and config.quality >= 2 and config.light_scale > 0.0 and DotFxLightBudget.try_take(config.lifetime))
+	var near_enough := first_person or config.light_distance <= 0.0 or far <= config.light_distance
+	node.set("light_enable", light and near_enough and config.quality >= 2 and config.light_scale > 0.0 and DotFxLightBudget.try_take(config.lifetime))
 	node.visible = true
 	node.call("play")
 	set_process(true)
 	return true
+
+
+## Metres from the viewport camera to this muzzle; 0 when there is no camera (a headless server, a suite), so nothing is culled.
+func _camera_distance() -> float:
+	if not is_inside_tree():
+		return 0.0
+	var cam := get_viewport().get_camera_3d() if get_viewport() != null else null
+	return cam.global_position.distance_to(global_position) if cam != null else 0.0
+
+
+## Instances this flash keeps: the full pool on the first-person gun, [member DotMuzzleFlashConfig.world_pool] elsewhere.
+func pool_target() -> int:
+	return POOL if first_person else clampi(config.world_pool if config != null else 1, 1, POOL)
 
 
 ## Hides every flash at once: a weapon switch, death, a reparent.
@@ -102,7 +123,7 @@ func is_showing() -> bool:
 
 ## Whether the pool is complete (or can never be), so [method fire] builds nothing.
 func is_ready() -> bool:
-	return _pool.size() >= POOL or (_scene_ready and _chosen == null) or not available() or size == Size.NONE
+	return _pool.size() >= pool_target() or (_scene_ready and _chosen == null) or not available() or size == Size.NONE
 
 
 func _ready() -> void:
@@ -132,7 +153,7 @@ func _process(_delta: float) -> void:
 			_until[i] = 0
 		else:
 			showing = true
-	if _pool.size() >= POOL or _chosen == null:
+	if _pool.size() >= pool_target() or _chosen == null:
 		set_process(showing)
 		return
 	# One instance per frame across all flashes, or eight warming at once would be one big hitch.
@@ -179,14 +200,14 @@ func _add_one() -> void:
 	node.set("speed_scale", ART_SECONDS / maxf(config.lifetime, 0.01))
 	_pool.append(node)
 	_until.append(0)
-	_built = _pool.size() >= POOL
+	_built = _pool.size() >= pool_target()
 
 
 ## Finishes the pool at once (a shot before the frames did); false when nothing can draw.
 func _ensure_built() -> bool:
 	if not _prepare():
 		return false
-	while _pool.size() < POOL:
+	while _pool.size() < pool_target():
 		_add_one()
 	return true
 

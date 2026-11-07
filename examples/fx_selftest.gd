@@ -39,6 +39,7 @@ func _run() -> void:
 	_test_screen_goo()
 	_test_muzzle_flash()
 	await _test_muzzle_flash_lifetime()
+	await _test_muzzle_flash_bench()
 	await _test_muzzle_flash_follows()
 	await _test_light_cap_and_pools()
 	_test_penetration_decals()

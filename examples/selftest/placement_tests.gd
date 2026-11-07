@@ -288,6 +288,56 @@ func _test_muzzle_flash_lifetime() -> void:
 	DotMuzzleFlash.force_available = false
 
 
+## 32 bots, 100 shots: nodes built and ms per shot with the old three-per-flash pool against the world pool, plus the distance cull.
+func _test_muzzle_flash_bench() -> void:
+	_section("muzzle flash bench: 32 bot muzzles, 100 shots")
+	DotMuzzleFlash.force_available = true
+	var report := {}
+	for pool: int in [3, 1]:
+		var cfg := DotMuzzleFlashConfig.new()
+		cfg.world_pool = pool
+		var before := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+		var flashes: Array[DotMuzzleFlash] = []
+		for i in 32:
+			var f := DotMuzzleFlash.new()
+			f.size = DotMuzzleFlash.Size.SMALL
+			f.config = cfg
+			add_child(f)
+			flashes.append(f)
+		var t0 := Time.get_ticks_usec()
+		for shot in 100:
+			flashes[shot % 32].fire()
+		var us := Time.get_ticks_usec() - t0
+		var made := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT) - before)
+		report[pool] = made
+		print("[bench] world_pool=%d: %d nodes for 32 muzzles after 100 shots, %.3f ms per shot" % [pool, made, us / 1000.0 / 100.0])
+		for f in flashes:
+			f.free()
+		DotFxLightBudget.reset()
+	_check(int(report[1]) < int(report[3]), "a world pool of one builds fewer nodes (%d < %d)" % [report[1], report[3]])
+	# Cull and light distance: a camera at the origin, a flash 200 m and 50 m away.
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.make_current()
+	var far := DotMuzzleFlash.new()
+	far.size = DotMuzzleFlash.Size.SMALL
+	add_child(far)
+	far.position = Vector3(0, 0, -200)
+	_check(not far.fire() and far.culled == 1, "a bot flash 200 m away is not drawn")
+	far.position = Vector3(0, 0, -50)
+	_check(far.fire(), "a bot flash 50 m away draws")
+	var lit := false
+	for n in far.get_children():
+		lit = lit or (n is Node3D and (n as Node3D).visible and bool(n.get("light_enable")))
+	_check(not lit, "but carries no light past the light distance")
+	far.first_person = true
+	far.position = Vector3(0, 0, -200)
+	_check(far.fire(), "the first-person gun is never culled")
+	far.free()
+	cam.free()
+	DotMuzzleFlash.force_available = false
+
+
 func _solid(body: PhysicsBody3D, size: Vector3, at: Vector3) -> void:
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
