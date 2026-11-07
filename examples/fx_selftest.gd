@@ -11,7 +11,7 @@ extends "res://examples/selftest/placement_tests.gd"
 ## godot --headless --path . res://examples/fx_selftest.tscn
 ## [/codeblock]
 
-const SECTIONS := 18
+const SECTIONS := 19
 const CHECKS := 174
 
 
