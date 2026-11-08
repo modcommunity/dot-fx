@@ -403,9 +403,24 @@ func _test_decal_surfaces() -> void:
 	var down := -oblique.global_transform.basis.z
 	_check(oblique != null and down.dot(Vector3.DOWN) > 0.999, "an oblique shot is turned flat onto the surface it hit")
 
+	var down_at := Transform3D(Basis.looking_at(Vector3.DOWN, Vector3.RIGHT), Vector3(0, 0.1, 0))
+	var surf := m.surface_at(down_at)
+	_check(not surf.is_empty() and absf((surf["position"] as Vector3).y) < 0.001, "surface_at is public and returns the floor under a point")
+	_check(m.surface_at(Transform3D(down_at.basis, Vector3(0, 50, 0))).is_empty(), "and nothing in open air")
+	_check(m.surface_at(Transform3D(down_at.basis, Vector3(-5, 1.8, 0))).is_empty(), "nor on a character")
+	var held := RigidBody3D.new()
+	held.freeze = true
+	_solid(held, Vector3(1, 1, 1), Vector3(10, 0.5, 0))
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	_check(m.spawn_on_surface(&"bullet_hole", Transform3D(down_at.basis, Vector3(0, 50, 0))) == null, "spawn_on_surface refuses open air")
+	var on_c := m.spawn_on_surface(&"bullet_hole", Transform3D(down_at.basis, Vector3(10, 1.0, 0))) as Node3D
+	_check(on_c != null and on_c.get_parent() == held, "and an effect on a rigid prop is parented to it")
+
 	m.queue_free()
 	floor_body.queue_free()
 	person.queue_free()
+	held.queue_free()
 
 
 func _test_muzzle_flash_follows() -> void:
