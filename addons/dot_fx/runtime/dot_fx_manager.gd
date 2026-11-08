@@ -257,7 +257,7 @@ func spawn_ricochet_decals(ricochets: Array, id: StringName = &"bullet_hole") ->
 func spawn_decal(id: StringName, at: Transform3D) -> Node:
 	if decal_surface_mask == 0:
 		return spawn(id, at)
-	var hit := _decal_surface(at)
+	var hit := surface_at(at)
 	if hit.is_empty():
 		spawned.emit(id, null, &"no_surface")
 		return null
@@ -269,8 +269,23 @@ func spawn_decal(id: StringName, at: Transform3D) -> Node:
 	return node
 
 
-## The first surface a decal may sit on, or empty. Characters and ragdoll bones never qualify.
-func _decal_surface(at: Transform3D) -> Dictionary:
+## Spawns any effect (an impact spark, a hit flash) at [param at] on the surface along its -Z, as [method spawn_decal] does for a decal but without refitting its orientation. Refused as [code]&"no_surface"[/code] for open air or a character; a RigidBody3D or AnimatableBody3D hit adopts the effect so it moves and dies with the body.
+func spawn_on_surface(id: StringName, at: Transform3D) -> Node:
+	if decal_surface_mask == 0:
+		return spawn(id, at)
+	var hit := surface_at(at)
+	if hit.is_empty():
+		spawned.emit(id, null, &"no_surface")
+		return null
+	var node := spawn(id, at)
+	var body := hit["collider"] as Node3D
+	if node != null and (body is RigidBody3D or body is AnimatableBody3D):
+		node.reparent(body, true)
+	return node
+
+
+## The first surface a decal or impact effect may sit on along [param at]'s -Z within [member decal_reach] either side, as an intersect_ray result (position, normal, collider), or empty. Characters and ragdoll bones never qualify.
+func surface_at(at: Transform3D) -> Dictionary:
 	var world := get_viewport().world_3d if get_viewport() != null else null
 	if world == null or not at.origin.is_finite():
 		return {}

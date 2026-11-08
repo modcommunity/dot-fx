@@ -16,5 +16,6 @@ extends RefCounted
 # 8: DotFxRenderConfig and DotFxRenderQuality: anisotropy, anti-aliasing, mip bias and sharpness on a viewport.
 # 9: DotFxBreak and DotFxBreakConfig: break particles and a sound keyed by material.
 # 10: DotFxPoolConfig, DotFxLightBudget, DotFxLightPool and DotFxMeshPool: pooled impact nodes and a dynamic-light cap.
-const LEVEL := 10
+# 11: DotFxManager.surface_at() and spawn_on_surface(): the surface query decals use, public, and impact effects that follow a moving body.
+const LEVEL := 11
 const OLDEST := 1

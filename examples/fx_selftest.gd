@@ -12,7 +12,7 @@ extends "res://examples/selftest/placement_tests.gd"
 ## [/codeblock]
 
 const SECTIONS := 19
-const CHECKS := 180
+const CHECKS := 185
 
 
 func _ready() -> void:
