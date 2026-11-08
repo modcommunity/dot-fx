@@ -477,4 +477,9 @@ func _test_light_cap_and_pools() -> void:
 	_check(meshes.idle() == 1 and not m1.visible, "release hides and pools once, even when called twice")
 	var m3 := meshes.acquire(quad, Transform3D.IDENTITY)
 	_check(m3 == m1 and meshes.built() == 2, "the released instance is the one reused")
+	DotFxMeshPool.max_idle = 0
+	meshes.release(m3)
+	_check(meshes.idle() == 0 and meshes.built() == 1 and m3.is_queued_for_deletion(),
+		"max_idle frees a release past the cap instead of pooling it")
+	DotFxMeshPool.max_idle = -1
 	meshes.queue_free()

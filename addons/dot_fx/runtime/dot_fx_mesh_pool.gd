@@ -3,6 +3,11 @@ extends Node3D
 
 ## Reused MeshInstance3D nodes for impact marks and flashes, so none is built or freed mid-match. Place it yourself; no autoload.
 
+## Most idle instances one pool keeps; a release past it frees the instance instead (-1: keep
+## all). A pool otherwise stays at its busiest moment for the rest of the match, and a game with
+## one pool per player (64 in a 16v16 with bots) holds over a thousand hidden meshes.
+static var max_idle := -1
+
 var _free: Array[MeshInstance3D] = []
 var _all: Array[MeshInstance3D] = []
 
@@ -38,6 +43,10 @@ func release(m: MeshInstance3D) -> void:
 	if not is_instance_valid(m) or _free.has(m):
 		return
 	m.visible = false
+	if max_idle >= 0 and _free.size() >= max_idle:
+		_all.erase(m)
+		m.queue_free()
+		return
 	_free.append(m)
 
 
