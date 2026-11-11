@@ -61,4 +61,4 @@ Deliberately not here: art, particle effects (weather is the one exception and i
 
 ## Open items
 
-- `DotFxBeacon` is used by mg-prop-hunt, game-hide-n-seek and game-zombie-zone. game-arena, game-g2gfast, game-playlot, mg-buses-from-hell, mg-deathrun, mg-smash-copter and mg-wipeout still carry their own `*_beacon.gd`: not yet converted; reason unknown.
+- `DotFxBeacon` is used by mg-prop-hunt, game-hide-n-seek and game-zombie-zone. game-fatal-contact, game-airdrift, game-playlot, mg-buses-from-hell, mg-deathrun, mg-smash-copter and mg-wipeout still carry their own `*_beacon.gd`: not yet converted; reason unknown.

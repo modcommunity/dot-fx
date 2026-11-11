@@ -352,7 +352,7 @@ func _may_spawn(def: DotFxDef, where: Vector3) -> StringName:
 ## for [CPUParticles3D] and [GPUParticles3D] -- spent its first burst at the world's
 ## origin and only the later particles came from where the effect was asked for. The
 ## node itself ended up in the right place, which is all a check of `global_position`
-## could see; game-g2gfast's gate effects found it only by being rendered (96b2be2).
+## could see; game-airdrift's gate effects found it only by being rendered (96b2be2).
 ## A 2D node takes the transform's X and Z as its position and its yaw as its rotation,
 ## which is how [method spawn_2d] encodes them.
 func _place(node: Node, at: Transform3D) -> void:
