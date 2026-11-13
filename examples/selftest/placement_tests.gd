@@ -445,6 +445,52 @@ func _test_muzzle_flash_follows() -> void:
 	DotMuzzleFlash.force_available = false
 
 
+func _test_muzzle_flash_materials_not_shared() -> void:
+	_section("muzzle flashes own their materials: one flash's fade does not leak into another")
+	DotMuzzleFlash.force_available = true
+	var a := DotMuzzleFlash.new()
+	a.size = DotMuzzleFlash.Size.SMALL
+	a.variant = 1
+	a.first_person = true
+	var b := DotMuzzleFlash.new()
+	b.size = DotMuzzleFlash.Size.SMALL
+	b.variant = 1
+	b.first_person = false
+	add_child(a)
+	add_child(b)
+	a.fire()
+	b.fire()
+	var na := _first_vfx(a)
+	var nb := _first_vfx(b)
+	_check(na != null and nb != null, "both flashes built an instance of the same scene")
+	var ma := _first_mat(na)
+	var mb := _first_mat(nb)
+	_check(ma != null and mb != null and ma != mb, "the two instances hold different material objects")
+	if ma != null and mb != null:
+		_check(ma.get_shader_parameter("proximity_fade") == true and mb.get_shader_parameter("proximity_fade") == false,
+			"the first-person fade is on for one and off for the other")
+		var before := _first_mat(na)
+		na.set("primary_color", Color.RED)
+		_check(before == _first_mat(na), "later writes reuse the owned copy (no new allocation)")
+	a.queue_free()
+	b.queue_free()
+	DotMuzzleFlash.force_available = false
+
+
+func _first_vfx(flash: Node) -> Node3D:
+	for n in flash.get_children():
+		if n is Node3D and n.has_method("_own_materials"):
+			return n
+	return null
+
+
+func _first_mat(vfx: Node3D) -> ShaderMaterial:
+	for c in vfx.get_children():
+		if (c is GPUParticles3D or c is MeshInstance3D) and c.material_override is ShaderMaterial:
+			return c.material_override
+	return null
+
+
 func _test_light_cap_and_pools() -> void:
 	_section("light cap and node pools")
 	var cfg := DotFxPoolConfig.new()

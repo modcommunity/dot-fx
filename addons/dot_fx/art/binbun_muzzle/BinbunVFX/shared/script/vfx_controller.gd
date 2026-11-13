@@ -179,7 +179,26 @@ func _reset_particles():
 	for p in _get_particles():
 		p.restart()
 
+## True once this instance owns its materials (see _own_materials).
+var _owns_materials : bool = false
+
+## The scene's ShaderMaterials are sub-resources shared by every instance of the scene, so a
+## write for one flash (proximity fade, colours, speed) would change all of them. Duplicate
+## them once per instance, the first time a parameter is written at runtime; no per-frame cost.
+func _own_materials() -> void:
+	if _owns_materials or Engine.is_editor_hint():
+		return
+	var found := false
+	for n in get_children():
+		if n is GPUParticles3D or n is MeshInstance3D:
+			var mat = n.material_override
+			if mat is ShaderMaterial:
+				n.material_override = mat.duplicate()
+				found = true
+	_owns_materials = found
+
 func _set_shader_params(name : String, value) -> void:
+	_own_materials()
 	for p in _get_particles():
 		if is_instance_valid(p):
 			if p.material_override is ShaderMaterial:
